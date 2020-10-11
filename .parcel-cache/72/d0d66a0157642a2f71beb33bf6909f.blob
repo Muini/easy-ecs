@@ -1,0 +1,148 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.System = exports.Component = exports.Entity = exports.World = exports.Addon = void 0;
+
+var _uuid = _interopRequireDefault(require("../../ecs/core/utils/uuid"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class Addon {
+  static get name() {
+    return this.constructor.name;
+  }
+
+}
+
+exports.Addon = Addon;
+
+_defineProperty(Addon, "onInit", world => {});
+
+_defineProperty(Addon, "onStart", world => {});
+
+_defineProperty(Addon, "onBeforeUpdate", (world, time) => {});
+
+_defineProperty(Addon, "onAfterUpdate", (world, time) => {});
+
+class World {
+  constructor(props = {
+    addons: [],
+    systems: []
+  }) {
+    _defineProperty(this, "addons", []);
+
+    _defineProperty(this, "systems", []);
+
+    _defineProperty(this, "systemsList", []);
+
+    _defineProperty(this, "entities", []);
+
+    this.addons = props.addons;
+    props.systems.forEach(system => {
+      this.systems = [...this.systems, new system()];
+    });
+    this.init();
+  }
+
+  addEntity(entity) {
+    this.entities.push(entity);
+  }
+
+  start() {
+    this.addons.forEach(addon => addon.onStart(this));
+  }
+
+  init() {
+    // const now = performance.now()
+    this.addons.forEach(addon => addon.onInit(this));
+    this.systems.forEach(system => {
+      const entities = this.entities.filter(entity => system.dependencies.every(dependency => entity.components.indexOf(dependency.name) >= 0));
+      system.onInit(entities);
+    }); // console.log('init took', performance.now() - now, 'ms\n')
+  }
+
+  update(time) {
+    // const now = performance.now()
+    this.addons.forEach(addon => addon.onBeforeUpdate(this, time));
+    this.systems.forEach(system => {
+      const entities = this.entities.filter(entity => system.dependencies.every(dependency => entity.components.indexOf(dependency.name) >= 0));
+      system.onUpdate(entities);
+    });
+    this.addons.forEach(addon => addon.onAfterUpdate(this, time)); // console.log('update took', performance.now() - now, 'ms\n')
+  }
+
+}
+
+exports.World = World;
+
+class Entity {
+  constructor(world, values) {
+    _defineProperty(this, "id", (0, _uuid.default)());
+
+    _defineProperty(this, "components", []);
+
+    this.constructor.components.forEach(component => {
+      this.addComponent(component, values);
+    });
+    world.addEntity(this);
+  }
+
+  addComponent(component, values) {
+    this.components.push(component.name);
+    component.props.forEach(prop => {
+      this[prop] = values[prop] ? values[prop] : component[prop];
+    });
+  }
+
+  serialize() {
+    return JSON.stringify(this);
+  }
+
+  unserialize(json) {
+    const props = JSON.parse(json);
+    Object.keys(props).forEach(prop => {
+      this[prop] = props[prop];
+    });
+  }
+
+  destroy() {}
+
+}
+
+exports.Entity = Entity;
+
+_defineProperty(Entity, "components", []);
+
+class Component {
+  static get props() {
+    return Object.keys(this);
+  }
+
+  static get name() {
+    return this.constructor.name;
+  }
+
+}
+
+exports.Component = Component;
+
+class System {
+  constructor() {
+    _defineProperty(this, "dependencies", []);
+
+    _defineProperty(this, "onInit", entities => {});
+
+    _defineProperty(this, "onUpdate", entities => {});
+  }
+
+  get name() {
+    return this.constructor.name;
+  }
+
+}
+
+exports.System = System;

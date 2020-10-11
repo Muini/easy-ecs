@@ -1,0 +1,12 @@
+{
+  "name": "easy-ecs",
+  "version": "0.0.1",
+  "description": "Easy Entity Component System",
+  "main": "./exemple/index.js",
+  "author": "Corentin Flach",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "parcel": "^2.0.0-beta.1"
+  }
+}

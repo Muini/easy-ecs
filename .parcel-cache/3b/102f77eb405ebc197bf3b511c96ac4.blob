@@ -1,0 +1,159 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SaveGame = exports.Renderer = exports.Input = exports.Loop = exports.Time = void 0;
+
+var _uuid = _interopRequireDefault(require("../../ecs/core/utils/uuid"));
+
+var _ecs = require("./ecs");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class Time extends _ecs.Addon {}
+
+exports.Time = Time;
+
+_defineProperty(Time, "time", 0);
+
+_defineProperty(Time, "delta", 0);
+
+_defineProperty(Time, "elapsed", 0);
+
+_defineProperty(Time, "onBeforeUpdate", (world, time) => {
+  Time.delta = time - Time.time;
+  Time.time = time;
+  Time.elapsed += Time.delta;
+});
+
+class Loop extends _ecs.Addon {
+  static get isRunning() {
+    return Loop.raf !== null;
+  }
+
+}
+
+exports.Loop = Loop;
+
+_defineProperty(Loop, "raf", null);
+
+_defineProperty(Loop, "onStart", world => {
+  Loop.raf = requestAnimationFrame(world.update.bind(world));
+});
+
+_defineProperty(Loop, "onBeforeUpdate", world => {
+  Loop.raf = requestAnimationFrame(world.update.bind(world));
+});
+
+_defineProperty(Loop, "stop", () => {
+  cancelAnimationFrame(Loop.raf);
+  Loop.raf = null;
+});
+
+class Input extends _ecs.Addon {}
+
+exports.Input = Input;
+
+_defineProperty(Input, "keypress", null);
+
+_defineProperty(Input, "keydown", []);
+
+_defineProperty(Input, "mouse", {
+  x: 0,
+  y: 0
+});
+
+_defineProperty(Input, "INPUT_LEFT", 37);
+
+_defineProperty(Input, "INPUT_RIGHT", 39);
+
+_defineProperty(Input, "INPUT_UP", 38);
+
+_defineProperty(Input, "INPUT_DOWN", 40);
+
+_defineProperty(Input, "onInit", world => {
+  document.addEventListener('keydown', evt => {
+    if (Input.keydown.indexOf(evt.keyCode) !== -1) return;
+    Input.keydown = [...Input.keydown, evt.keyCode];
+  });
+  document.addEventListener('keyup', evt => {
+    Input.keydown.splice(Input.keydown.indexOf(evt.keyCode), 1);
+  });
+  document.addEventListener('mousemove', evt => {
+    Input.mouse = {
+      x: evt.clientX,
+      y: evt.clientY
+    };
+  });
+});
+
+_defineProperty(Input, "onBeforeUpdate", world => {
+  Input.keypress = Input.keydown;
+});
+
+_defineProperty(Input, "onAfterUpdate", world => {
+  Input.keypress = null;
+});
+
+_defineProperty(Input, "isPressed", key => {
+  return Input.keypress.indexOf(key) !== -1;
+});
+
+class Renderer extends _ecs.Addon {}
+
+exports.Renderer = Renderer;
+
+_defineProperty(Renderer, "canvas", null);
+
+_defineProperty(Renderer, "ctx", null);
+
+_defineProperty(Renderer, "width", 0);
+
+_defineProperty(Renderer, "height", 0);
+
+_defineProperty(Renderer, "onInit", world => {
+  Renderer.canvas = document.getElementById('game');
+  Renderer.ctx = Renderer.canvas.getContext('2d');
+  Renderer.width = 512;
+  Renderer.height = 512;
+  Renderer.canvas.width = Renderer.width * window.devicePixelRatio;
+  Renderer.canvas.height = Renderer.height * window.devicePixelRatio;
+  Renderer.canvas.style['width'] = Renderer.width;
+  Renderer.canvas.style['height'] = Renderer.height;
+});
+
+_defineProperty(Renderer, "onBeforeUpdate", world => {
+  Renderer.ctx.clearRect(0, 0, Renderer.canvas.width, Renderer.canvas.height);
+});
+
+class SaveGame extends _ecs.Addon {}
+
+exports.SaveGame = SaveGame;
+
+_defineProperty(SaveGame, "world", null);
+
+_defineProperty(SaveGame, "onInit", world => {
+  SaveGame.world = world;
+});
+
+_defineProperty(SaveGame, "save", () => {
+  const saveFile = {
+    id: (0, _uuid.default)(),
+    timestamp: Date.now(),
+    entities: SaveGame.world.entities.map(entity => entity.serialize())
+  };
+  localStorage.setItem(`save${saveFile.id}`, JSON.stringify(saveFile));
+  return saveFile.id;
+});
+
+_defineProperty(SaveGame, "restore", id => {
+  const saveFile = localStorage.getItem(`save${id}`);
+  const saveData = JSON.parse(saveFile);
+  SaveGame.world.entities = [];
+  saveData.entities.forEach(entityData => {
+    new _ecs.Entity(SaveGame.world).unserialize(entityData);
+  });
+});
