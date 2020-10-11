@@ -1,4 +1,8 @@
 
+<p align="center">
+  <img src="https://github.com/Muini/easy-ecs/blob/master/easy-ecs.svg" alt="Easy ECS Logo" width="240" />
+</p>
+
 # ⚙ Easy ECS
 
 Easy Entity Component System is a minimalist open-source Javascript ES7 library that helps you create games quickly. It's focused on developer happyness and performance. It has zero dependancies, is super lightweight and extensible.
@@ -7,7 +11,9 @@ Easy Entity Component System is a minimalist open-source Javascript ES7 library 
 
 ### Prerequisites
 
-Just get a simple javascript project with npm support and Parcel builder (to support ES7) for exemple
+Just get a simple javascript project with npm support and Parcel builder (to support ES7) for exemple.
+
+⚠️ Note: Very early developement, expect breaking changes.
 
 ### Installing
 
