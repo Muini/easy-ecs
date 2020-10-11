@@ -1,0 +1,8 @@
+.DS_Store
+.cache
+.parcel-cache
+node_modules/
+dist/*
+report.html
+npm-debug.log
+yarn-error.log
