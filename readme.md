@@ -32,7 +32,7 @@ export class Position extends Component{
   static y = 0;
 }
 // Component inheritence
-export class 3DPosition extends Position{
+export class Position3D extends Position{
   static z = 0;
 }
 // Another component
@@ -58,19 +58,25 @@ export class Hero extends Character {
 import { System } from 'easy-ecs';
 // System declaration
 export class CharacterMovement extends System {
-  dependencies = [Position]; // Component list that will filter entities that have those components
+  // Component list that will filter entities that have those components
+  dependencies = [Position]; 
   // onUpdate Will fire every world.update (or every frame if Loop Addon is added)
-  // entities is filtered entities
-  onInit = (entities) => {}
   onUpdate = (entities) => { 
+    // entities is filtered entities
     entities.forEach(entity => {
       entity.x += 0.1 * Time.delta; //Time is an Addon, see below
     })
   };
 }
+// Make your own system
+export class MySystem extends System {
+  dependencies = [MyComponent, ...]; 
+  onInit = (entities) => {};
+  onUpdate = (entities) => {};
+}
 ```
 
-#### World & Game start
+#### World & Game start exemple
 ```javascript
 
 import { World } from 'easy-ecs';
@@ -97,8 +103,8 @@ const bob = new Character(world, {
 // Start the world, that's all !
 world.start()
 
-// If Addon Loop is included, the game will run in a loop, otherwise you can manually update it
-world.update()
+// You can manually update it with (useless if Loop Addon is used) :
+world.update(Date.now())
 
 ```
 
@@ -107,13 +113,18 @@ world.update()
 Addon is an easy way to extend the world engine.
 Addon will never be instantiated and all properties must be static.
 
-##### Official Addon
+##### Official Addons
 
-- 🔁 **Loop**: Will set a loop calling `world.update()` based on `requestAnimationFrame`
-- ⏱️ **Time**: Access `Time.time`, `Time.delta` and `Time.elapsed` easily anywhere
-- 🕹️ **Input**: Access to current input, either `Input.mouse` position or `Input.isPressed(keycode)` to check if a specific key is pressed, or `Input.keypress` to get all keys pressed
-- 🖼️ **Renderer**: Canvas Renderer with basic access to `Renderer.canvas` and context `Renderer.ctx`
-- 💾 **SaveGame**: Save & restore world state from `localStorage` using `const id = SaveGame.save()` and `SaveGame.restore(id)`
+- 🔁 **Loop**: 
+  Will set a loop calling `world.update()` based on `requestAnimationFrame`
+- ⏱️ **Time**: 
+  Access `Time.time`, `Time.delta` and `Time.elapsed` easily anywhere
+- 🕹️ **Input**: 
+  Access to current input, either `Input.mouse` position or `Input.isPressed(keycode)` to check if a specific key is pressed, or `Input.keypress` to get all keys pressed
+- 🖼️ **Renderer**: 
+  Canvas Renderer with basic access to `Renderer.canvas` and context `Renderer.ctx`
+- 💾 **SaveGame**: 
+  Save & restore world state from `localStorage` using `const id = SaveGame.save()` and `SaveGame.restore(id)`
 
 ##### Custom Addon
 
