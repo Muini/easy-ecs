@@ -1,15 +1,13 @@
 
 # ⚙ Easy ECS
 
-Easy Entity Component System is a minimalist Javascript ES7 library that helps you create games quickly. It's focused on developer happyness and performance. It has zero dependancies, is super lightweight and extensible.
+Easy Entity Component System is a minimalist open-source Javascript ES7 library that helps you create games quickly. It's focused on developer happyness and performance. It has zero dependancies, is super lightweight and extensible.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-
 ### Prerequisites
 
-Just get a simple project with npm support and Parcel builder for exemple
+Just get a simple javascript project with npm support and Parcel builder (to support ES7) for exemple
 
 ### Installing
 
@@ -20,8 +18,6 @@ Install package from `npm` in your project
 ```javascript
 yarn add easy-ecs
 ```
-
-End with an example of getting some data out of the system or using it for a little demo
 
 ### Usage
 
@@ -113,11 +109,11 @@ Addon will never be instantiated and all properties must be static.
 
 ##### Official Addon
 
-- Loop 
-- Time 
-- Input
-- Renderer
-- SaveGame
+- 🔁 **Loop**: Will set a loop calling `world.update()` based on `requestAnimationFrame`
+- ⏱️ **Time**: Access `Time.time`, `Time.delta` and `Time.elapsed` easily anywhere
+- 🕹️ **Input**: Access to current input, either `Input.mouse` position or `Input.isPressed(keycode)` to check if a specific key is pressed, or `Input.keypress` to get all keys pressed
+- 🖼️ **Renderer**: Canvas Renderer with basic access to `Renderer.canvas` and context `Renderer.ctx`
+- 💾 **SaveGame**: Save & restore world state from `localStorage` using `const id = SaveGame.save()` and `SaveGame.restore(id)`
 
 ##### Custom Addon
 
@@ -149,8 +145,8 @@ export class Time extends Addon {
 - [x] Readme
 - [ ] Exemple
 - [ ] Documentation
-- [ ] Addon: WebGL Renderer
 - [ ] Addon: Audio
+- [ ] Addon: WebGL Renderer
 
 ## Inspired by
 
