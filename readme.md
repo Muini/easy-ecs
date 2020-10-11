@@ -1,4 +1,5 @@
-# Easy ECS
+
+# ⚙ Easy ECS
 
 Easy Entity Component System is a minimalist Javascript ES7 library that helps you create games quickly. It's focused on developer happyness and performance. It has zero dependancies, is super lightweight and extensible.
 
@@ -143,12 +144,13 @@ export class Time extends Addon {
 
 ## Roadmap
 
-- [x] Base
-- [x] Basic Addons
+- [x] Core
+- [x] Addons: Loop, Time, Input, Renderer(canvas), SaveGame
 - [x] Readme
 - [ ] Exemple
 - [ ] Documentation
-- [ ] WebGL Renderer
+- [ ] Addon: WebGL Renderer
+- [ ] Addon: Audio
 
 ## Inspired by
 
