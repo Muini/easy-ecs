@@ -16,7 +16,7 @@
 
 Easy Entity Component System is a minimalist open-source Javascript ES7 library that helps you create games quickly. It's focused on developer happyness and performance. It has zero dependancies, is super lightweight and extensible.
 
-## Getting Started
+## Introduction
 
 ### Prerequisites
 
@@ -24,6 +24,16 @@ Just get a simple javascript project with `npm` support.
 You can also use the build version and use it without any stack.
 
 ⚠️ Note: Very early developement, expect breaking changes.
+
+#### Glossary
+
+- **World**: One class instance to rule them all.
+- **Entity**: It's a instantiable class that is composed of **Components**.
+- **Component**: The «data» of your entity. Never instantiated, only declarative.
+- **System**: Where the logic happens. A system process **Entities** that have a specific set of **Components**.
+- **Addon**: This is a way to extend the **World**.
+
+## Getting Started
 
 ### Installing
 
@@ -36,14 +46,6 @@ npm i @muini/easy-ecs
 ### Usage
 
 Creating the structure of your game is a declarative process
-
-#### Glossary
-
-- **World**: One class instance to rule them all.
-- **Entity**: It's a instantiable class that is composed of **Components**.
-- **Component**: The «data» of your entity. Never instantiated, only declarative.
-- **System**: Where the logic happens. A system process **Entities** that have a specific set of **Components**.
-- **Addon**: This is a way to extend the **World**.
 
 #### Component
 ```javascript
@@ -130,12 +132,12 @@ world.update(Date.now())
 
 ```
 
-#### Addon
+### Addon
 
 Addon is an easy way to extend the world engine.
 Addon will never be instantiated and all properties must be static.
 
-##### Official Addons
+#### Official Addons
 
 - 🔁 **Loop**: 
   Will set a loop calling `world.update(timestamp)` based on `requestAnimationFrame`
@@ -148,7 +150,7 @@ Addon will never be instantiated and all properties must be static.
 - 💾 **SaveSystem**: 
   Save & restore world state from `localStorage` using `const id = SaveSystem.saveGame(world, saveName)` and `SaveSystem.restoreGame(world, saveName)`
 
-##### Custom Addon
+#### Custom Addon
 
 ```javascript
 // Example of a new addon
