@@ -11,7 +11,7 @@ Easy Entity Component System is a minimalist open-source Javascript ES7 library 
 
 ### Prerequisites
 
-Just get a simple javascript project with npm support and Parcel builder (to support ES7) for exemple.
+Just get a simple javascript project with npm support and Parcel builder (to support ES7) for example.
 
 ⚠️ Note: Very early developement, expect breaking changes.
 
@@ -82,7 +82,7 @@ export class MySystem extends System {
 }
 ```
 
-#### World & Game start exemple
+#### World & Game start example
 ```javascript
 
 import { World } from 'easy-ecs';
@@ -135,14 +135,14 @@ Addon will never be instantiated and all properties must be static.
 ##### Custom Addon
 
 ```javascript
-// Exemple of a new addon
+// Example of a new addon
 export class MyAddon extends Addon {
   static onInit = (world) => { /*Do stuff*/ }
   static onStart = (world) => { /*Do stuff*/ }
   static onBeforeUpdate = (world, time) => { /*Do stuff*/ }
   static onAfterUpdate = (world, time) => { /*Do stuff*/ }
 }
-// Exemple of Time Addon
+// Example of Time Addon
 export class Time extends Addon {
   static time = 0;
   static delta = 0;
@@ -160,7 +160,7 @@ export class Time extends Addon {
 - [x] Core
 - [x] Addons: Loop, Time, Input, Renderer(canvas), SaveGame
 - [x] Readme
-- [ ] Exemple
+- [ ] Example
 - [ ] Documentation
 - [ ] Addon: Audio
 - [ ] Addon: WebGL Renderer
