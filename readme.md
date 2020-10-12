@@ -1,9 +1,18 @@
 
 <p align="center">
-  <img src="https://github.com/Muini/easy-ecs/blob/master/easy-ecs.svg" alt="Easy ECS Logo" width="240" />
+  <img src="https://raw.githubusercontent.com/Muini/easy-ecs/master/easy-ecs.svg" alt="Easy ECS Logo" width="240" />
 </p>
 
-# ⚙ Easy ECS
+<h1 align="center">⚙ Easy ECS</h1>
+
+<p align="center">
+    <a href="https://www.npmjs.com/package/@muini/easy-ecs">
+        <img src="https://img.shields.io/npm/v/@muini/easy-ecs?style=flat-square" alt="license" />
+    </a>
+    <a href="https://bundlephobia.com/result?p=@muini/easy-ecs">
+        <img src="https://img.shields.io/bundlephobia/min/@muini/easy-ecs?style=flat-square" alt="size" />
+    </a>
+</p>
 
 Easy Entity Component System is a minimalist open-source Javascript ES7 library that helps you create games quickly. It's focused on developer happyness and performance. It has zero dependancies, is super lightweight and extensible.
 
@@ -27,6 +36,14 @@ npm i @muini/easy-ecs
 ### Usage
 
 Creating the structure of your game is a declarative process
+
+#### Glossary
+
+- **World**: One class instance to rule them all.
+- **Entity**: It's a instantiable class that is composed of **Components**.
+- **Component**: The «data» of your entity. Never instantiated, only declarative.
+- **System**: Where the logic happens. A system process **Entities** that have a specific set of **Components**.
+- **Addon**: This is a way to extend the **World**.
 
 #### Component
 ```javascript
@@ -87,8 +104,8 @@ export class MySystem extends System {
 import { World } from 'easy-ecs';
 import { Loop, Time, Input, Renderer, SaveSystem } from 'easy-ecs/addons';
 
-import { Character } from '.your-game/entities';
-import { PlayerMovement, CharacterMovement, CharacterRenderer } from '.your-game/systems';
+import { Character } from './your-game/entities';
+import { PlayerMovement, CharacterMovement, CharacterRenderer } from './your-game/systems';
 
 //Instantiate your world
 const world = new World({
@@ -125,11 +142,11 @@ Addon will never be instantiated and all properties must be static.
 - ⏱️ **Time**: 
   Access `Time.time`, `Time.delta` and `Time.elapsed` easily anywhere
 - 🕹️ **Input**: 
-  Access to current input, either `Input.mouse` position or `Input.isPressed(keycode)` to check if a specific key is pressed, or `Input.keypress` to get all keys pressed
+  Access to current input, either `Input.mouse` position or `Input.isPressed(key)` to check if a specific key is pressed, or `Input.keypress` to get all keys pressed
 - 🖼️ **Renderer**: 
   Canvas Renderer with basic access to `Renderer.canvas` and context `Renderer.ctx`
 - 💾 **SaveSystem**: 
-  Save & restore world state from `localStorage` using `const id = SaveSystem.saveGame(world, saveName)` and `SaveSystem.restore(world, saveName)`
+  Save & restore world state from `localStorage` using `const id = SaveSystem.saveGame(world, saveName)` and `SaveSystem.restoreGame(world, saveName)`
 
 ##### Custom Addon
 
