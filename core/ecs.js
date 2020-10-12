@@ -3,7 +3,6 @@ import { UUID } from './utils'
 export class Addon {
   static get name(){ return this.constructor.name } 
   static onInit = (world) => {}
-  static onStart = (world) => {}
   static onBeforeUpdate = (world, time) => {}
   static onAfterUpdate = (world, time) => {}
 }
@@ -26,10 +25,6 @@ export class World {
     this.entities.splice( this.entities.indexOf(entity), 1 )
   }
   start(){
-    this.init()
-    this.addons.forEach(addon => addon.onStart(this))
-  }
-  init(){
     // const now = performance.now()
     this.addons.forEach(addon => addon.onInit(this))
     this.systems.forEach(system => {
@@ -70,12 +65,14 @@ export class Entity {
     world.addEntity(this);
   }
   addComponent(component, values = {}){
-    this.components.push(component.name)
     component.props.forEach(prop => {
+      if(this[prop]) console.warn(`Easy-ECS: Entity prop ${prop} overwrite by component ${component.name}`, entity)
       this[prop] = values[prop] ? values[prop] : component[prop]
     })
+    this.components.push(component.name)
   }
-  removeComponent(component, shouldClean = false){
+  removeComponent(component, shouldClean = false){  
+    if(this.components.indexOf(component.name) === -1) return;
     this.components.splice(this.components.indexOf(component.name), 1)
     if(!component.props || !shouldClean) return;
     component.props.forEach(prop => {

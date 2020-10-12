@@ -121,7 +121,7 @@ Addon will never be instantiated and all properties must be static.
 ##### Official Addons
 
 - 🔁 **Loop**: 
-  Will set a loop calling `world.update()` based on `requestAnimationFrame`
+  Will set a loop calling `world.update(timestamp)` based on `requestAnimationFrame`
 - ⏱️ **Time**: 
   Access `Time.time`, `Time.delta` and `Time.elapsed` easily anywhere
 - 🕹️ **Input**: 
@@ -137,7 +137,6 @@ Addon will never be instantiated and all properties must be static.
 // Example of a new addon
 export class MyAddon extends Addon {
   static onInit = (world) => { /*Do stuff*/ }
-  static onStart = (world) => { /*Do stuff*/ }
   static onBeforeUpdate = (world, time) => { /*Do stuff*/ }
   static onAfterUpdate = (world, time) => { /*Do stuff*/ }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@muini/easy-ecs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Easy Entity Component System is a minimalist open-source Javascript ES7 library that helps you create games quickly",
   "main": "./build/easy-ecs.js",
   "author": "Corentin Flach",
@@ -13,7 +13,7 @@
   "scripts": {
       "dev:example": "parcel -p 5000 ./example/index.html --no-hmr --no-cache",
       "build": "parcel build ./index.js --no-cache --detailed-report",
-      "build:publish": "yarn build && npm pack && npm publish --access=public"
+      "publish": "yarn build && npm pack && npm publish --access=public"
   },
   "devDependencies": {
     "parcel": "^2.0.0-beta.1"

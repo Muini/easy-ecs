@@ -12,15 +12,18 @@ export class Time extends Addon {
 }
 export class Loop extends Addon {
   static raf = null;
-  static onStart = (world) => {
-    Loop.raf = requestAnimationFrame(world.update.bind(world));
-  }
-  static onBeforeUpdate = (world) => {
+  static loop = (world) => {
     Loop.raf = requestAnimationFrame(world.update.bind(world));
   }
   static stop = () => {
     cancelAnimationFrame(Loop.raf);
     Loop.raf = null;
+  }
+  static onInit = (world) => {
+    Loop.loop(world);
+  }
+  static onBeforeUpdate = (world) => {
+    Loop.loop(world)
   }
   static get isRunning(){
     return Loop.raf !== null;
@@ -30,17 +33,17 @@ export class Input extends Addon {
   static keypress = null;
   static keydown = [];
   static mouse = {x: 0, y: 0};
-  static INPUT_LEFT = 37;
-  static INPUT_RIGHT = 39;
-  static INPUT_UP = 38;
-  static INPUT_DOWN = 40;
+  static INPUT_LEFT = 'ArrowLeft';
+  static INPUT_RIGHT = 'ArrowRight';
+  static INPUT_UP = 'ArrowUp';
+  static INPUT_DOWN = 'ArrowDown';
   static onInit = (world) => {
     document.addEventListener('keydown', evt => {
-      if(Input.keydown.indexOf(evt.keyCode) !== -1) return
-      Input.keydown = [...Input.keydown, evt.keyCode];
+      if(Input.keydown.indexOf(evt.code) !== -1) return
+      Input.keydown = [...Input.keydown, evt.code];
     });
     document.addEventListener('keyup', evt => {
-      Input.keydown.splice(Input.keydown.indexOf(evt.keyCode), 1);
+      Input.keydown.splice(Input.keydown.indexOf(evt.code), 1);
     })
     document.addEventListener('mousemove', evt => {
       Input.mouse = {x: evt.clientX, y: evt.clientY};
@@ -91,11 +94,11 @@ export class SaveSystem extends Addon {
       new Entity(world).unserialize(entityData)
     })
   }
-  static saveData = (nameAccess, data) => {
-    localStorage.setItem(`easy-ecs-${nameAccess}`, JSON.stringify(data))
+  static saveData = (name, data) => {
+    localStorage.setItem(`data-${name}`, JSON.stringify(data))
   }
-  static restoreData = (nameAccess) => {
-    const savedData = localStorage.getItem(`easy-ecs-${nameAccess}`)
+  static restoreData = (name) => {
+    const savedData = localStorage.getItem(`data-${name}`)
     return savedData ? JSON.parse(savedData) : null
   }
 }
