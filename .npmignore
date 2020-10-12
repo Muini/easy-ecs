@@ -3,6 +3,7 @@
 .parcel-cache
 *.tgz
 node_modules
+exemple
 dist
 report.html
 npm-debug.log

@@ -11,18 +11,17 @@ Easy Entity Component System is a minimalist open-source Javascript ES7 library 
 
 ### Prerequisites
 
-Just get a simple javascript project with npm support and Parcel builder (to support ES7) for example.
+Just get a simple javascript project with `npm` support.
+You can also use the build version and use it without any stack.
 
 ⚠️ Note: Very early developement, expect breaking changes.
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
-
-Install package from `npm` in your project
+Install package from `npm` in your project or get the `build/easy-ecs.js` file.
 
 ```javascript
-yarn add easy-ecs
+npm i easy-ecs
 ```
 
 ### Usage
@@ -162,8 +161,10 @@ export class Time extends Addon {
 - [x] Readme
 - [ ] Example
 - [ ] Documentation
+- [ ] Addon: AssetManager
 - [ ] Addon: Audio
-- [ ] Addon: WebGL Renderer
+
+Other Addon ideas = UI (html based?), WebGL Renderer, ...
 
 ## Inspired by
 
@@ -173,7 +174,7 @@ export class Time extends Addon {
 
 ## Contributing
 
-Feel free to open issues & PR !
+Feel free to open issues for questions, bugs or improvements & PR !
 
 ## Authors
 
