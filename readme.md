@@ -21,7 +21,7 @@ You can also use the build version and use it without any stack.
 Install package from `npm` in your project or get the `build/easy-ecs.js` file.
 
 ```javascript
-npm i easy-ecs
+npm i @muini/easy-ecs
 ```
 
 ### Usage
