@@ -85,7 +85,7 @@ export class MySystem extends System {
 ```javascript
 
 import { World } from 'easy-ecs';
-import { Loop, Time, Input, Renderer, SaveGame } from 'easy-ecs/addons';
+import { Loop, Time, Input, Renderer, SaveSystem } from 'easy-ecs/addons';
 
 import { Character } from '.your-game/entities';
 import { PlayerMovement, CharacterMovement, CharacterRenderer } from '.your-game/systems';
@@ -93,7 +93,7 @@ import { PlayerMovement, CharacterMovement, CharacterRenderer } from '.your-game
 //Instantiate your world
 const world = new World({
   // Add as much addon as you can to extend the world and engine
-  addons: [Loop, Time, Input, Renderer, SaveGame, ...],
+  addons: [Loop, Time, Input, Renderer, SaveSystem, ...],
   // Order of systems is the order of execution
   systems: [PlayerMovement, CharacterMovement, CharacterRenderer, ...]
 });
@@ -128,8 +128,8 @@ Addon will never be instantiated and all properties must be static.
   Access to current input, either `Input.mouse` position or `Input.isPressed(keycode)` to check if a specific key is pressed, or `Input.keypress` to get all keys pressed
 - 🖼️ **Renderer**: 
   Canvas Renderer with basic access to `Renderer.canvas` and context `Renderer.ctx`
-- 💾 **SaveGame**: 
-  Save & restore world state from `localStorage` using `const id = SaveGame.save()` and `SaveGame.restore(id)`
+- 💾 **SaveSystem**: 
+  Save & restore world state from `localStorage` using `const id = SaveSystem.saveGame(world, saveName)` and `SaveSystem.restore(world, saveName)`
 
 ##### Custom Addon
 
@@ -157,7 +157,7 @@ export class Time extends Addon {
 ## Roadmap
 
 - [x] Core
-- [x] Addons: Loop, Time, Input, Renderer(canvas), SaveGame
+- [x] Addons: Loop, Time, Input, Renderer(canvas), SaveSystem
 - [x] Readme
 - [ ] Example
 - [ ] Documentation

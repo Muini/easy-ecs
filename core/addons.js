@@ -1,4 +1,3 @@
-import { UUID } from './utils';
 import { Addon, Entity } from './ecs'
 
 export class Time extends Addon {
@@ -76,26 +75,20 @@ export class Renderer extends Addon {
     Renderer.ctx.clearRect(0, 0, Renderer.canvas.width, Renderer.canvas.height);
   }
 }
-export class SaveGame extends Addon {
-  static world = null;
-  static onInit = (world) => {
-    SaveGame.world = world;
-  }
-  static save = () => {
+export class SaveSystem extends Addon {
+  static saveGame = (world, saveName) => {
     const saveFile = {
-      id: UUID(),
       timestamp: Date.now(),
-      entities: this.world.entities.map(entity => entity.serialize())
+      entities: world.entities.map(entity => entity.serialize())
     }
-    localStorage.setItem(`save${saveFile.id}`, JSON.stringify(saveFile))
-    return saveFile.id
+    localStorage.setItem(`gamesave-${saveName}`, JSON.stringify(saveFile))
   }
-  static restore = (id) => {
-    const saveFile = localStorage.getItem(`save${id}`)
+  static restoreGame = (world, saveName) => {
+    const saveFile = localStorage.getItem(`gamesave-${saveName}`)
     const saveData = JSON.parse(saveFile);
-    SaveGame.world.entities = []
+    world.entities = []
     saveData.entities.forEach(entityData => {
-      new Entity(SaveGame.world).unserialize(entityData)
+      new Entity(world).unserialize(entityData)
     })
   }
 }

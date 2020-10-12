@@ -1,10 +1,10 @@
 
 import { World } from '../core/ecs';
-import { Time, Input, Loop, Renderer, SaveGame } from '../core/addons';
+import { Time, Input, Loop, Renderer, SaveSystem } from '../core/addons';
 import { Player, Soldier, PlayerMovement, NPCMovement, CharacterRenderer } from './game';
 
 const world = new World({
-  addons: [Loop, Time, Input, Renderer, SaveGame],
+  addons: [Loop, Time, Input, Renderer, SaveSystem],
   systems: [PlayerMovement, NPCMovement, CharacterRenderer]
 });
 
@@ -30,8 +30,12 @@ for (let i = 0; i < 4; i++) {
 world.start()
 
 setTimeout(_ => {
-  const id = SaveGame.save()
+  const now = performance.now()
+  SaveSystem.saveGame(world, 'test')
+  console.log('Game saved in', performance.now() - now, 'ms')
   setTimeout(_ => {
-    SaveGame.restore(id)
+    const now = performance.now()
+    SaveSystem.restoreGame(world, 'test')
+    console.log('Game restored in', performance.now() - now, 'ms')
   }, 2000)
-}, 300)
+}, 1000)
