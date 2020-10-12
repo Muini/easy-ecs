@@ -49,7 +49,7 @@ Creating the structure of your game is a declarative process
 
 #### Component
 ```javascript
-import { Component } from 'easy-ecs/core';
+import { Component } from '@muini/easy-ecs';
 // Component
 export class Position extends Component{
   static x = 0;
@@ -67,7 +67,7 @@ export class Health extends Component{
 ```
 #### Entity
 ```javascript
-import { Entity } from 'easy-ecs/core';
+import { Entity } from '@muini/easy-ecs';
 // Entity is just a list of Component classes
 export class Character extends Entity {
   static components = [Position]
@@ -79,7 +79,7 @@ export class Hero extends Character {
 ```
 #### System
 ```javascript
-import { System } from 'easy-ecs/core';
+import { System } from '@muini/easy-ecs';
 // System declaration
 export class CharacterMovement extends System {
   // Component list that will filter entities that have those components
@@ -103,8 +103,8 @@ export class MySystem extends System {
 #### World & Game start example
 ```javascript
 
-import { World } from 'easy-ecs/core';
-import { Loop, Time, Input, Renderer, SaveSystem } from 'easy-ecs/addons';
+import { World } from '@muini/easy-ecs';
+import { Loop, Time, Input, Renderer, SaveSystem } from '@muini/easy-ecs/addons';
 
 import { Character } from './your-game/entities';
 import { PlayerMovement, CharacterMovement, CharacterRenderer } from './your-game/systems';
