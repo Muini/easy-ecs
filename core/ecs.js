@@ -17,12 +17,16 @@ export class World {
     props.systems.forEach(system => {
       this.systems = [...this.systems, new system()]
     })
-    this.init()
   }
   addEntity(entity){
     this.entities.push(entity)
   }
+  removeEntity(entity){
+    if(this.entities.indexOf(entity) === -1) return console.warn('Easy-ECS: Cannot remove entity from world', entity)
+    this.entities.splice( this.entities.indexOf(entity), 1 )
+  }
   start(){
+    this.init()
     this.addons.forEach(addon => addon.onStart(this))
   }
   init(){
@@ -56,21 +60,32 @@ export class World {
 export class Entity {
   id = UUID();
   components = []
+  world = null
   static components = []
   constructor(world, values) {
     this.constructor.components.forEach(component => {
       this.addComponent(component, values);
     })
+    this.world = world;
     world.addEntity(this);
   }
-  addComponent(component, values){
+  addComponent(component, values = {}){
     this.components.push(component.name)
     component.props.forEach(prop => {
       this[prop] = values[prop] ? values[prop] : component[prop]
     })
   }
+  removeComponent(component, shouldClean = false){
+    this.components.splice(this.components.indexOf(component.name), 1)
+    if(!component.props || !shouldClean) return;
+    component.props.forEach(prop => {
+      delete this[prop]
+    })
+  }
   serialize(){
-    return JSON.stringify(this)
+    let data = {}
+    Object.keys(this).forEach(prop => prop !== 'world' ? data[prop] = this[prop] : false)
+    return JSON.stringify(data)
   }
   unserialize(json){
     const props = JSON.parse(json)
@@ -78,7 +93,9 @@ export class Entity {
       this[prop] = props[prop] 
     })
   }
-  destroy(){}
+  destroy(){
+    this.world.removeEntity(this)
+  }
 }
 export class Component {
   static get props(){

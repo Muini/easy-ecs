@@ -61,11 +61,11 @@ export class Renderer extends Addon {
   static ctx = null;
   static width = 0;
   static height = 0;
-  static onInit = (world) => {
-    Renderer.canvas = document.getElementById('game');
+  static setup = (canvas, width, height) => {
+    Renderer.canvas = canvas
+    Renderer.width = width
+    Renderer.height = height
     Renderer.ctx = Renderer.canvas.getContext('2d');
-    Renderer.width = 512;
-    Renderer.height = 512;
     Renderer.canvas.width = Renderer.width * window.devicePixelRatio;
     Renderer.canvas.height = Renderer.height * window.devicePixelRatio;
     Renderer.canvas.style['width'] = Renderer.width;
@@ -90,5 +90,12 @@ export class SaveSystem extends Addon {
     saveData.entities.forEach(entityData => {
       new Entity(world).unserialize(entityData)
     })
+  }
+  static saveData = (nameAccess, data) => {
+    localStorage.setItem(`easy-ecs-${nameAccess}`, JSON.stringify(data))
+  }
+  static restoreData = (nameAccess) => {
+    const savedData = localStorage.getItem(`easy-ecs-${nameAccess}`)
+    return savedData ? JSON.parse(savedData) : null
   }
 }
