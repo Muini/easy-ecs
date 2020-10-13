@@ -9,7 +9,6 @@ export class Addon {
 export class World {
   addons = [];
   systems = [];
-  systemsList = [];
   entities = [];
   constructor(props = {addons: [], systems: []}){
     this.addons = props.addons

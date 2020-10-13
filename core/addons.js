@@ -64,13 +64,14 @@ export class Renderer extends Addon {
   static ctx = null;
   static width = 0;
   static height = 0;
+  static pixelRatio = window.devicePixelRatio
   static setup = (canvas, width, height) => {
     Renderer.canvas = canvas
     Renderer.width = width
     Renderer.height = height
     Renderer.ctx = Renderer.canvas.getContext('2d');
-    Renderer.canvas.width = Renderer.width * window.devicePixelRatio;
-    Renderer.canvas.height = Renderer.height * window.devicePixelRatio;
+    Renderer.canvas.width = Renderer.width * Renderer.pixelRatio;
+    Renderer.canvas.height = Renderer.height * Renderer.pixelRatio;
     Renderer.canvas.style['width'] = Renderer.width;
     Renderer.canvas.style['height'] = Renderer.height;
   }
