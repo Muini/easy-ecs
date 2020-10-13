@@ -14,7 +14,7 @@
     </a>
 </p>
 
-Easy Entity Component System is a minimalist open-source Javascript ES7 library that helps you create games quickly. It's focused on developer happyness and performance. It has zero dependancies, is super lightweight and extensible.
+Easy Entity Component System is a minimalist open-source Javascript library that helps you create games quickly. It's focused on developer happyness and performance. It has zero dependancies, is super lightweight and extensible.
 
 ## Introduction
 

@@ -20,8 +20,6 @@ const player = new Spaceship(world, {
   size: 10,
 })
 
-console.log(Renderer)
-
 console.log(player)
 
 world.start()

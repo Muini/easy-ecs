@@ -32,16 +32,14 @@ export class Controllable extends Component {}
 // Renderer components
 // ====================================
 
-export class Renderable extends Component {
+export class BaseRenderable extends Component {
   static color = `rgba(255, 255, 255, 1.0)`;
 }
 
-export class AsteroidRenderable extends Renderable {
+export class AsteroidRenderable extends BaseRenderable {
   static type = 0 //0 | 1 | 2
 }
 
-export class SpaceshipRenderable extends Renderable {
-  static test =  2
-}
+export class SpaceshipRenderable extends BaseRenderable {}
 
-export class ProjectileRenderable extends Renderable {}
+export class ProjectileRenderable extends BaseRenderable {}

@@ -67,8 +67,7 @@ export class SpaceshipRenderer extends System{
     entities.forEach(entity => {
       Renderer.ctx.translate(entity.position.x, entity.position.y)
       Renderer.ctx.rotate(entity.rotation)
-      // Renderer.ctx.fillStyle = entity.color
-      Renderer.ctx.fillStyle = `rgba(255, 255, 255, 1.0)`
+      Renderer.ctx.fillStyle = entity.color
       Renderer.ctx.beginPath()
       const size = entity.size * Renderer.pixelRatio;
       Renderer.ctx.moveTo(size, 0)
