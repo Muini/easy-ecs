@@ -27,6 +27,12 @@ export class Collision extends Component{
 
 export class Controllable extends Component {}
 
+export class Shield extends Component {
+  static hasShield = false;
+  static shieldPower = 100;
+  static shieldForce = 10;
+}
+
 // ====================================
 // Renderer components
 // ====================================

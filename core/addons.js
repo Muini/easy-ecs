@@ -37,6 +37,7 @@ export class Input extends Addon {
   static INPUT_RIGHT = 'ArrowRight';
   static INPUT_UP = 'ArrowUp';
   static INPUT_DOWN = 'ArrowDown';
+  static INPUT_SPACE = 'Space';
   static onInit = (world) => {
     document.addEventListener('keydown', evt => {
       if(Input.keydown.indexOf(evt.code) !== -1) return
@@ -101,5 +102,32 @@ export class SaveSystem extends Addon {
   static restoreData = (name) => {
     const savedData = localStorage.getItem(`data-${name}`)
     return savedData ? JSON.parse(savedData) : null
+  }
+}
+export class Rules extends Addon {
+  static constantRules = []
+  static eventRules = []
+  static notify(event, data){
+    const therule = Rules.eventRules.find(rule => rule[event])
+    if(therule && therule[event]) therule[event](data)
+  }
+  static on(event, func){
+    const rule = { [event]: func }
+    Rules.eventRules.push(rule)
+  }
+  static off(event, func){
+    const rule = { [event]: func }
+    if(rule) Rules.eventRules.splice(Rules.eventRules.indexOf(rule), 1);
+  }
+  static addRule(func){
+    Rules.constantRules.push(func);
+  }
+  static removeRule(func){
+    if(func) Rules.constantRules.splice(Rules.constantRules.indexOf(func), 1);
+  }
+  static onAfterUpdate(world){
+    Rules.constantRules.forEach(rule => {
+      rule(world)
+    })
   }
 }

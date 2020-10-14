@@ -1,5 +1,5 @@
 import { System } from '../../core/ecs'
-import { Time, Input, Renderer } from '../../core/addons';
+import { Time, Input, Renderer, Rules } from '../../core/addons';
 
 import { 
   Position, 
@@ -9,7 +9,8 @@ import {
   AsteroidRenderable, 
   SpaceshipRenderable, 
   Collision, 
-  ProjectileRenderable 
+  ProjectileRenderable, 
+  Shield
 } from './components'
 import { Asteroid, Spaceship } from './entities';
 
@@ -72,51 +73,29 @@ export class SpaceBodyCollisions extends System {
     })
   }
   onCollision = (entity, hitEntity) => {
-    // console.log(entity.constructor == Asteroid, hitEntity.constructor == Asteroid)
-    // if(entity.constructor == Asteroid && hitEntity.constructor == Asteroid){
-      const collision = {
-        x: hitEntity.position.x - entity.position.x, 
-        y: hitEntity.position.y - entity.position.y
-      };
-      const distance = Math.sqrt(
-        (hitEntity.position.x-entity.position.x) * (hitEntity.position.x-entity.position.x) + (hitEntity.position.y-entity.position.y) * (hitEntity.position.y-entity.position.y)
-      );
-      const hitNormal = {x: collision.x / distance, y: collision.y / distance};
-      const relativeVelocity = {
-        x: entity.velocity.x - hitEntity.velocity.x, 
-        y: entity.velocity.y - hitEntity.velocity.y
-      }
-      const speed = dot(relativeVelocity, hitNormal);
-      if (speed < 0){
-          return;
-      }
-      const impulse = 2 * speed / (entity.mass + hitEntity.mass);
-      entity.velocity.x -= (impulse * hitEntity.mass * hitNormal.x);
-      entity.velocity.y -= (impulse * hitEntity.mass * hitNormal.y);
-      hitEntity.velocity.x += (impulse * entity.mass * hitNormal.x);
-      hitEntity.velocity.y += (impulse * entity.mass * hitNormal.y);
-      
-      const shouldBreakEntity = impulse * 1000 > hitEntity.mass;
-      const shouldBreakHitEntity = impulse * 1000 > entity.mass;
+    const collision = {
+      x: hitEntity.position.x - entity.position.x, 
+      y: hitEntity.position.y - entity.position.y
+    };
+    const distance = Math.sqrt(
+      (hitEntity.position.x-entity.position.x) * (hitEntity.position.x-entity.position.x) + (hitEntity.position.y-entity.position.y) * (hitEntity.position.y-entity.position.y)
+    );
+    const hitNormal = {x: collision.x / distance, y: collision.y / distance};
+    const relativeVelocity = {
+      x: entity.velocity.x - hitEntity.velocity.x, 
+      y: entity.velocity.y - hitEntity.velocity.y
+    }
+    const speed = dot(relativeVelocity, hitNormal);
+    if (speed < 0){
+        return;
+    }
+    const impulse = 2 * speed / (entity.mass + hitEntity.mass);
+    entity.velocity.x -= (impulse * hitEntity.mass * hitNormal.x);
+    entity.velocity.y -= (impulse * hitEntity.mass * hitNormal.y);
+    hitEntity.velocity.x += (impulse * entity.mass * hitNormal.x);
+    hitEntity.velocity.y += (impulse * entity.mass * hitNormal.y);
 
-      if(shouldBreakEntity){
-        console.log('break', hitEntity.constructor.name, )
-      }
-      if(shouldBreakHitEntity){
-        console.log('break', entity.constructor.name)
-      }
-      
-      if(
-        (entity.constructor === Asteroid && hitEntity.constructor === Spaceship) ||
-        (hitEntity.constructor === Asteroid && entity.constructor === Spaceship)
-      ){
-        // Do stuf
-      }
-      
-    // }else{
-      // entity.destroy()
-      // hitEntity.destroy()
-    // }
+    Rules.notify('collision', { entity, hitEntity, impulse })
   }
 }
 
@@ -159,6 +138,19 @@ export class SpaceshipMovements extends System {
       })
     });
   };
+}
+
+export class SpaceshipShieldControl extends System {
+  dependencies = [Shield, Controllable];
+  onUpdate = (entities) => {
+    entities.forEach(entity => {
+      if(Input.isPressed(Input.INPUT_SPACE)){
+        entity.hasShield = true
+      }else{
+        entity.hasShield = false
+      }
+    })
+  }
 }
 
 export class SpaceshipRenderer extends System{
