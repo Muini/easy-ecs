@@ -18,8 +18,7 @@ export class Size extends Component{
 }
 
 export class Collision extends Component{
-  static type = 'circle'
-  static radius = 10
+  static mass = 10;
 }
 
 // ====================================

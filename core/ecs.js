@@ -57,7 +57,6 @@ export class Entity {
   world = null
   static components = []
   constructor(world, values) {
-    console.log(this.constructor.components)
     this.constructor.components.forEach(component => {
       this.addComponent(component, values);
     })
@@ -65,7 +64,6 @@ export class Entity {
     world.addEntity(this);
   }
   addComponent(component, values = {}){
-    console.log('add components', component.name, component.props)
     component.props.forEach(prop => {
       if(this[prop]) console.warn(`Easy-ECS: Entity prop ${prop} overwrite by component ${component.name}`, entity)
       this[prop] = values[prop] ? values[prop] : component[prop]

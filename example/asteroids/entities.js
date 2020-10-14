@@ -8,6 +8,13 @@ export class SpaceBody extends Entity {
 
 export class Asteroid extends SpaceBody {
   static components = [...super.components, AsteroidRenderable]
+  onDestroy(){
+    if(this.size > 20){
+      new Asteroid(this.world, {
+        position: { x: this.position.x, y: this.position.y }
+      })
+    }
+  }
 }
 
 export class Spaceship extends SpaceBody {
