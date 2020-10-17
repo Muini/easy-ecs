@@ -12,6 +12,7 @@
   },
   "scripts": {
       "dev:example": "parcel -p 5000 ./example/index.html --no-hmr --no-cache",
+      "build:example": "parcel build ./example/index.js --no-cache --detailed-report --dist-dir ./build/example",
       "build": "parcel build ./index.js --no-cache --detailed-report",
       "publish": "yarn build && npm pack && npm publish --access=public"
   },

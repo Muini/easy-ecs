@@ -8,10 +8,19 @@ import {
   Controllable, 
   AsteroidRenderable, 
   SpaceshipRenderable, 
+  DebrisRenderable,
   Collision,
   Shield,
-  AutoDestroy
+  AutoDestroy,
+  UIGauge,
+  UIGaugeRenderable,
+  UIText,
+  UITextRenderable
 } from './components'
+
+// ====================================
+// Game systems
+// ====================================
 
 const MAX_VELOCITY = 0.5;
 export class GlobalMovements extends System {
@@ -23,6 +32,7 @@ export class GlobalMovements extends System {
       entity.velocity.x = entity.velocity.x < -MAX_VELOCITY ? -MAX_VELOCITY : entity.velocity.x 
       entity.velocity.y = entity.velocity.y > MAX_VELOCITY ? MAX_VELOCITY : entity.velocity.y
       entity.velocity.y = entity.velocity.y < -MAX_VELOCITY ? -MAX_VELOCITY : entity.velocity.y
+      // Apply velocity to position
       entity.position.x += entity.velocity.x * Time.delta;
       entity.position.y += entity.velocity.y * Time.delta;
       // World bounds
@@ -55,11 +65,11 @@ export class SpaceBodyCollisions extends System {
       entities.forEach(otherEntity => {
         if(entity.id !== otherEntity.id){
           const collision = circleIntersect(
-            entity.position.x - (entity.size / 2), 
-            entity.position.y - (entity.size / 2), 
+            entity.position.x, 
+            entity.position.y, 
             entity.size,
-            otherEntity.position.x - (otherEntity.size / 2), 
-            otherEntity.position.y - (otherEntity.size / 2), 
+            otherEntity.position.x, 
+            otherEntity.position.y, 
             otherEntity.size
           );
           if(collision){
@@ -98,6 +108,22 @@ export class SpaceBodyCollisions extends System {
   }
 }
 
+export class AutoDestroySystem extends System{
+  dependencies = [AutoDestroy];
+  onUpdate = (entities) => {
+    entities.forEach(entity => {
+      entity.currentLifeTime -= Time.delta;
+      if(entity.currentLifeTime <= 0){
+        entity.destroy();
+      }
+    })
+  }
+}
+
+// ====================================
+// Player systems
+// ====================================
+
 function shortAngleDist(a0,a1) {
     const max = Math.PI*2;
     const da = Math.sign(a1 - a0)*(Math.abs(a1 - a0) % max);
@@ -106,7 +132,6 @@ function shortAngleDist(a0,a1) {
 function lerpAngle(a0,a1,t) {
     return a0 + shortAngleDist(a0,a1)*t;
 }
-
 const PLAYER_SPEED = 0.0002
 const PLAYER_TURN_SPEED = 0.005
 export class SpaceshipMovements extends System {
@@ -160,9 +185,15 @@ export class SpaceshipShieldControl extends System {
       }
       entity.shieldPower = Math.min(Math.max(entity.shieldPower, 0), 100);
       entity.mass = entity.hasShield ? 10 * entity.shieldForce : 10;
+
+      Rules.notify('shield.update', entity.shieldPower);
     })
   }
 }
+
+// ====================================
+// Renderer systems
+// ====================================
 
 export class SpaceshipRenderer extends System{
   dependencies = [Position, Size, Shield, SpaceshipRenderable];
@@ -173,13 +204,19 @@ export class SpaceshipRenderer extends System{
         entity.position.y * Renderer.pixelRatio
       )
       Renderer.ctx.rotate(entity.rotation)
+      
+      Renderer.ctx.beginPath()
+      Renderer.ctx.fillStyle = entity.shieldColor
+      Renderer.ctx.arc(0, 0, 2, 0, 2 * Math.PI);
+      Renderer.ctx.fill()
+      Renderer.ctx.closePath()
       // Spaceship
       Renderer.ctx.fillStyle = entity.color;
       Renderer.ctx.beginPath()
-      const spaceshipSize = entity.size * 2 * Renderer.pixelRatio;
-      Renderer.ctx.moveTo(spaceshipSize, 0)
-      Renderer.ctx.lineTo(-spaceshipSize, -spaceshipSize/1.5)
-      Renderer.ctx.lineTo(-spaceshipSize, spaceshipSize/1.5)
+      const spaceshipSize = entity.size * Renderer.pixelRatio;
+      Renderer.ctx.moveTo(-spaceshipSize / 2, -spaceshipSize / 2)
+      Renderer.ctx.lineTo(-spaceshipSize / 2, spaceshipSize / 2)
+      Renderer.ctx.lineTo(spaceshipSize, 0)
       Renderer.ctx.fill()
       Renderer.ctx.closePath()
       Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
@@ -189,10 +226,11 @@ export class SpaceshipRenderer extends System{
         entity.position.x * Renderer.pixelRatio, 
         entity.position.y * Renderer.pixelRatio
       )
+      Renderer.ctx.lineWidth = 1 * Renderer.pixelRatio;
       Renderer.ctx.strokeStyle = entity.shieldColor
       Renderer.ctx.beginPath()
-      const shieldSize = entity.size * Renderer.pixelRatio * 2;
-      Renderer.ctx.arc(-shieldSize / 2, -shieldSize / 2, shieldSize, 0, 2 * Math.PI);
+      const shieldSize = entity.size * Renderer.pixelRatio;
+      Renderer.ctx.arc(0, 0, shieldSize, 0, 2 * Math.PI);
       Renderer.ctx.stroke()
       Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
     })
@@ -211,21 +249,79 @@ export class AsteroidRenderer extends System{
       Renderer.ctx.fillStyle = entity.color;
       Renderer.ctx.beginPath()
       const size = entity.size * Renderer.pixelRatio;
-      Renderer.ctx.arc(-size / 2, -size / 2, size, 0, 2 * Math.PI);
+      Renderer.ctx.arc(0, 0, size, 0, 2 * Math.PI);
       Renderer.ctx.fill()
       Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
     })
   }
 }
 
-export class AutoDestroySystem extends System{
-  dependencies = [AutoDestroy];
+export class DebrisRenderer extends System{
+  dependencies = [Position, Size, DebrisRenderable, AutoDestroy];
   onUpdate = (entities) => {
     entities.forEach(entity => {
-      entity.lifeTime -= Time.delta;
-      if(entity.lifeTime <= 0){
-        entity.destroy();
-      }
+      Renderer.ctx.translate(
+        entity.position.x * Renderer.pixelRatio, 
+        entity.position.y * Renderer.pixelRatio
+      )
+      const lifeTimeRatio = entity.currentLifeTime / entity.lifeTime;
+      Renderer.ctx.rotate(entity.rotation)
+      Renderer.ctx.fillStyle = entity.color;
+      Renderer.ctx.globalAlpha = lifeTimeRatio;
+      Renderer.ctx.beginPath()
+      const size = entity.size * Renderer.pixelRatio * lifeTimeRatio;
+      Renderer.ctx.arc(0, 0, size, 0, 2 * Math.PI);
+      Renderer.ctx.fill()
+      Renderer.ctx.globalAlpha = 1;
+      Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
+    })
+  }
+}
+
+export class UITextRenderer extends System{
+  dependencies = [UIText, UITextRenderable];
+  onUpdate = (entities) => {
+    entities.forEach(entity => {
+      Renderer.ctx.translate(
+        entity.x * Renderer.pixelRatio, 
+        entity.y * Renderer.pixelRatio
+      )
+      Renderer.ctx.font = `${entity.fontSize * Renderer.pixelRatio}px Helvetica`
+      // Renderer.ctx.shadowColor = 'rgba(0,0,0,1.0)'
+      // Renderer.ctx.shadowBlur = 6
+      Renderer.ctx.fillStyle = entity.color
+      const textWidth = entity.text.length * entity.fontSize * Renderer.pixelRatio;
+      Renderer.ctx.fillText(entity.text, 0, 0)
+      Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
+    })
+  }
+}
+
+export class UIGaugeRenderer extends System{
+  dependencies = [UIGauge, UIGaugeRenderable];
+  onUpdate = (entities) => {
+    entities.forEach(entity => {
+      Renderer.ctx.translate(
+        entity.x * Renderer.pixelRatio, 
+        entity.y * Renderer.pixelRatio
+      )
+      const width = entity.width * Renderer.pixelRatio;
+      const height = entity.height * Renderer.pixelRatio;
+      const currentPercent = entity.value / entity.maxValue;
+      const gap = 2 * Renderer.pixelRatio;
+      // Inner
+      Renderer.ctx.fillStyle = entity.color;
+      Renderer.ctx.beginPath();
+      Renderer.ctx.rect(gap, gap, (width - (gap * 2)) * currentPercent, (height - (gap * 2)));
+      Renderer.ctx.fill();
+      // Outer
+      Renderer.ctx.lineWidth = 1 * Renderer.pixelRatio;
+      Renderer.ctx.strokeStyle = currentPercent <= 0 ? `rgba(255, 50, 20, 1.0)` : `rgba(255, 255, 255, 1.0)`;
+      Renderer.ctx.beginPath();
+      Renderer.ctx.rect(0, 0, width, height);
+      Renderer.ctx.stroke();
+
+      Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
     })
   }
 }

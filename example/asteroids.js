@@ -2,45 +2,108 @@
 import { World } from '../core/ecs';
 import { Time, Input, Loop, Renderer, SaveSystem, Rules } from '../core/addons';
 
-import { GlobalMovements, SpaceshipMovements, SpaceshipRenderer, AsteroidRenderer, SpaceBodyCollisions, SpaceshipShieldControl, AutoDestroySystem } from './asteroids/systems';
-import { Spaceship, Asteroid, AsteroidDebris } from './asteroids/entities';
+import { GlobalMovements, SpaceshipMovements, SpaceshipRenderer, AsteroidRenderer, DebrisRenderer, SpaceBodyCollisions, SpaceshipShieldControl, AutoDestroySystem, UIGaugeRenderer, UITextRenderer } from './asteroids/systems';
+import { Spaceship, Asteroid, Debris, UIScore, UIShieldBar } from './asteroids/entities';
 
-Renderer.setup(document.getElementById('game'), 512, 512);
+// ====================================
+// Game Setup
+// ====================================
+
+const WINDOW_SIZE = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
+Renderer.setup(document.getElementById('game'), WINDOW_SIZE, WINDOW_SIZE * 0.75);
 
 const world = new World({
-  addons: [Loop, Time, Input, Renderer, SaveSystem, Rules],
-  systems: [GlobalMovements, SpaceshipMovements, SpaceshipShieldControl, SpaceshipRenderer, AsteroidRenderer, SpaceBodyCollisions, AutoDestroySystem]
+  addons: [
+    Loop, 
+    Time, 
+    Input, 
+    Renderer,
+    SaveSystem, 
+    Rules
+  ],
+  systems: [
+    // Player
+    SpaceshipMovements, 
+    SpaceshipShieldControl, 
+    // Game
+    GlobalMovements, 
+    SpaceBodyCollisions, 
+    AutoDestroySystem,
+    // Renderer
+    SpaceshipRenderer, 
+    AsteroidRenderer, 
+    DebrisRenderer,
+    // UI Renderer
+    UIGaugeRenderer,
+    UITextRenderer
+  ]
 });
+
+// ====================================
+// Scene Setup
+// ====================================
+
+const PALETTE = {
+  lightest: `rgba(241, 250, 238, 1)`,
+  light: `rgba(168, 218, 220, 1)`,
+  medium: `rgba(69, 123, 157, 1)`,
+  accentuation: `rgba(230, 57, 70, 1)`
+}
 
 const player = new Spaceship(world, {
   position: {
     x: Renderer.width / 2 << 0,
     y: Renderer.height / 2 << 0,
   },
-  size: 3,
-  mass: 6
+  size: 10,
+  mass: 8,
+  color: PALETTE.lightest,
+  shieldColor: PALETTE.accentuation
 })
 
-const ASTEROIDS_AMOUNT = 10;
+const ASTEROIDS_AMOUNT = 30;
 const ASTEROIDS_MIN_SIZE = 10;
 const ASTEROIDS_MAX_SIZE = 50;
+const ASTEROIDS_MAX_VELOCITY = 0.1;
 
 for (let i = 0; i < ASTEROIDS_AMOUNT; i++) {
   const size = Math.max(Math.random() * ASTEROIDS_MAX_SIZE << 0, ASTEROIDS_MIN_SIZE);
   new Asteroid(world, {
-    color: `rgba(170, 170, 170, 1)`,
+    color: PALETTE.light,
     position: {
       x: Math.random() * Renderer.width << 0,
       y: Math.random() * Renderer.width << 0,
     },
     velocity: {
-      x: Math.random() * 0.05,
-      y: Math.random() * 0.05,
+      x: Math.random() * ASTEROIDS_MAX_VELOCITY,
+      y: Math.random() * ASTEROIDS_MAX_VELOCITY,
     },
     size: size,
     mass: size
   })
 }
+
+const score = new UIScore(world, {
+  x: Renderer.width * 0.05,
+  y: Renderer.height * 0.925,
+  text: '0',
+  fontSize: 24,
+  color: PALETTE.lightest,
+})
+
+const shieldBar = new UIShieldBar(world, {
+  width: Renderer.width * 0.15,
+  height: 12,
+  x: Renderer.width * 0.05,
+  y: Renderer.height * 0.95,
+  color: PALETTE.accentuation,
+  maxValue: player.shieldPower,
+  value: player.shieldPower,
+})
+
+// ====================================
+// Game Rules
+// ====================================
 
 const isSpaceship = (entity) => { return entity.constructor === Spaceship }
 const isAsteroid = (entity) => { return entity.constructor === Asteroid }
@@ -50,16 +113,16 @@ const rotateVector = (v, angle) => {
   newV.y = v.x*Math.sin(angle) + v.y*Math.cos(angle);
   return newV
 }
-const createDebris = (number, basePosition, baseVelocity) => {
+const createDebris = (number, basePosition, baseVelocity, color) => {
   for (let i = 0; i < number; i++) {
     const velocity = { x: Math.random() * baseVelocity.x / 2, y: Math.random() * baseVelocity.y / 2 };
-    new AsteroidDebris(world, {
-      color: `rgba(100, 100, 100, 1)`,
+    new Debris(world, {
+      color: color,
       position: {
         x: basePosition.x,
         y: basePosition.y,
       },
-      lifeTime: 1000,
+      lifeTime: 500 + (Math.random() * 1000) << 0,
       velocity: rotateVector(velocity, Math.random() * Math.PI * 2),
       size: 1,
     })
@@ -76,7 +139,7 @@ Rules.on('collision.break', ({
       if(shouldSplit){
         const newSize = entity.size / 2
         new Asteroid(world, {
-          color: `rgba(170, 170, 170, 1)`,
+          color: PALETTE.light,
           position: {
             x: entity.position.x,
             y: entity.position.y,
@@ -86,7 +149,7 @@ Rules.on('collision.break', ({
           mass: newSize
         })
         new Asteroid(world, {
-          color: `rgba(170, 170, 170, 1)`,
+          color: PALETTE.light,
           position: {
             x: entity.position.x,
             y: entity.position.y,
@@ -96,8 +159,14 @@ Rules.on('collision.break', ({
           mass: newSize
         })
       }
-      createDebris(entity.size << 0, entity.position, entity.velocity);
+      createDebris(entity.size << 0, entity.position, entity.velocity, PALETTE.medium);
+      const bonus = entity.size / 10 << 0;
+      Rules.notify('score.add', bonus)
       entity.destroy()
+    }else if(isSpaceship(entity)){
+      const malus = 20;
+      createDebris(malus, entity.position, entity.velocity, PALETTE.lightest);
+      Rules.notify('score.add', -malus)
     }
   }
 )
@@ -115,6 +184,13 @@ Rules.on('collision', ({
   ){
     if(player.hasShield){
       impulse *= player.shieldForce;
+      const bonus = impulse * 1000 << 0;
+      createDebris(bonus << 0, entity.position, { x: entity.velocity.x * 2, y: entity.velocity.y * 2 }, PALETTE.accentuation);
+      Rules.notify('score.add', bonus)
+    }else{
+      const malus = impulse * 1000 << 0;
+      createDebris(malus, entity.position, { x: entity.velocity.x * 2, y: entity.velocity.y * 2 }, PALETTE.lightest);
+      Rules.notify('score.add', -malus)
     }
   }
   const shouldBreakEntity = impulse * 1000 > hitEntity.mass;
@@ -126,5 +202,19 @@ Rules.on('collision', ({
     Rules.notify('collision.break', {entity: entity})
   }
 })
+
+Rules.on('score.add', (points) => {
+  score.score += points;
+  if(score.score < 0) score.score = 0;
+  score.text = `${score.score}`;
+})
+
+Rules.on('shield.update', (shieldValue) => {
+  shieldBar.value = shieldValue;
+})
+
+// ====================================
+// Game Start
+// ====================================
 
 world.start()

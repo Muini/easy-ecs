@@ -94,6 +94,9 @@ export class Entity {
   }
 }
 export class Component {
+  constructor(){
+    throw Error('Easy-ECS: Cannot instantiate class Component');
+  }
   static get props(){
     let returnProps = []
     for(let prop in this){
