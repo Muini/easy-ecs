@@ -8,11 +8,10 @@ import {
   Controllable, 
   AsteroidRenderable, 
   SpaceshipRenderable, 
-  Collision, 
-  ProjectileRenderable, 
-  Shield
+  Collision,
+  Shield,
+  AutoDestroy
 } from './components'
-import { Asteroid, Spaceship } from './entities';
 
 const MAX_VELOCITY = 0.5;
 export class GlobalMovements extends System {
@@ -141,20 +140,32 @@ export class SpaceshipMovements extends System {
 }
 
 export class SpaceshipShieldControl extends System {
-  dependencies = [Shield, Controllable];
+  dependencies = [Shield, Collision, Controllable];
   onUpdate = (entities) => {
     entities.forEach(entity => {
       if(Input.isPressed(Input.INPUT_SPACE)){
-        entity.hasShield = true
+        entity.hasShield = true;
       }else{
-        entity.hasShield = false
+        entity.hasShield = false;
       }
+      if(entity.hasShield){
+        entity.shieldPower -= entity.shieldDrain * Time.delta;
+        if(entity.shieldPower <= 0){
+          entity.hasShield = false;
+        }
+      }else{
+        if(entity.shieldPower < 100){
+          entity.shieldPower += entity.shieldRecover * Time.delta;
+        }
+      }
+      entity.shieldPower = Math.min(Math.max(entity.shieldPower, 0), 100);
+      entity.mass = entity.hasShield ? 10 * entity.shieldForce : 10;
     })
   }
 }
 
 export class SpaceshipRenderer extends System{
-  dependencies = [Position, Size, SpaceshipRenderable];
+  dependencies = [Position, Size, Shield, SpaceshipRenderable];
   onUpdate = (entities) => {
     entities.forEach(entity => {
       Renderer.ctx.translate(
@@ -162,13 +173,27 @@ export class SpaceshipRenderer extends System{
         entity.position.y * Renderer.pixelRatio
       )
       Renderer.ctx.rotate(entity.rotation)
-      Renderer.ctx.fillStyle = entity.color
+      // Spaceship
+      Renderer.ctx.fillStyle = entity.color;
       Renderer.ctx.beginPath()
-      const size = entity.size * 2 * Renderer.pixelRatio;
-      Renderer.ctx.moveTo(size, 0)
-      Renderer.ctx.lineTo(-size, -size/1.5)
-      Renderer.ctx.lineTo(-size, size/1.5)
+      const spaceshipSize = entity.size * 2 * Renderer.pixelRatio;
+      Renderer.ctx.moveTo(spaceshipSize, 0)
+      Renderer.ctx.lineTo(-spaceshipSize, -spaceshipSize/1.5)
+      Renderer.ctx.lineTo(-spaceshipSize, spaceshipSize/1.5)
       Renderer.ctx.fill()
+      Renderer.ctx.closePath()
+      Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
+      // Shield
+      if(!entity.hasShield) return
+      Renderer.ctx.translate(
+        entity.position.x * Renderer.pixelRatio, 
+        entity.position.y * Renderer.pixelRatio
+      )
+      Renderer.ctx.strokeStyle = entity.shieldColor
+      Renderer.ctx.beginPath()
+      const shieldSize = entity.size * Renderer.pixelRatio * 2;
+      Renderer.ctx.arc(-shieldSize / 2, -shieldSize / 2, shieldSize, 0, 2 * Math.PI);
+      Renderer.ctx.stroke()
       Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
     })
   }
@@ -183,12 +208,24 @@ export class AsteroidRenderer extends System{
         entity.position.y * Renderer.pixelRatio
       )
       Renderer.ctx.rotate(entity.rotation)
-      Renderer.ctx.fillStyle = entity.color
+      Renderer.ctx.fillStyle = entity.color;
       Renderer.ctx.beginPath()
       const size = entity.size * Renderer.pixelRatio;
       Renderer.ctx.arc(-size / 2, -size / 2, size, 0, 2 * Math.PI);
       Renderer.ctx.fill()
       Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
+    })
+  }
+}
+
+export class AutoDestroySystem extends System{
+  dependencies = [AutoDestroy];
+  onUpdate = (entities) => {
+    entities.forEach(entity => {
+      entity.lifeTime -= Time.delta;
+      if(entity.lifeTime <= 0){
+        entity.destroy();
+      }
     })
   }
 }

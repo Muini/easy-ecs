@@ -21,6 +21,15 @@ export class Collision extends Component{
   static mass = 10;
 }
 
+export class CollisionDetected extends Component{
+  static hitTarget = null; //Entity
+  static impulse = 0;
+}
+
+export class AutoDestroy extends Component {
+  static lifeTime = 1000; //ms
+}
+
 // ====================================
 // Player components
 // ====================================
@@ -29,8 +38,11 @@ export class Controllable extends Component {}
 
 export class Shield extends Component {
   static hasShield = false;
+  static shieldColor = `rgba(100, 150, 255, 1.0)`;
+  static shieldRecover = 1;
+  static shieldDrain = 0.1;
   static shieldPower = 100;
-  static shieldForce = 10;
+  static shieldForce = 20;
 }
 
 // ====================================
