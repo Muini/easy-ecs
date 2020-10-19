@@ -83,8 +83,11 @@ export class BaseRenderable extends Component {
 export class AsteroidRenderable extends BaseRenderable {
   static type = 0 //0 | 1 | 2
 }
-export class SpaceshipRenderable extends BaseRenderable {}
-export class DebrisRenderable extends BaseRenderable {}
+export class SpaceshipRenderable extends BaseRenderable {
+  static shieldAnimTime = 100;
+  static shieldCurrentTime = 0
+}
+export class ParticlesRenderable extends BaseRenderable {}
 
 export class UIRenderable extends Component {}
 export class UITextRenderable extends UIRenderable {}
