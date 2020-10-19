@@ -8,7 +8,7 @@ import {
   Controllable, 
   AsteroidRenderable, 
   SpaceshipRenderable, 
-  DebrisRenderable,
+  ParticlesRenderable,
   Collision,
   Shield,
   AutoDestroy,
@@ -17,6 +17,7 @@ import {
   UIText,
   UITextRenderable
 } from './components'
+import { Debris } from './entities';
 
 // ====================================
 // Game systems
@@ -132,7 +133,7 @@ function shortAngleDist(a0,a1) {
 function lerpAngle(a0,a1,t) {
     return a0 + shortAngleDist(a0,a1)*t;
 }
-const PLAYER_SPEED = 0.0002
+const PLAYER_SPEED = 0.0005
 const PLAYER_TURN_SPEED = 0.005
 export class SpaceshipMovements extends System {
   dependencies = [Position, Velocity, Controllable];
@@ -159,6 +160,18 @@ export class SpaceshipMovements extends System {
             entity.rotation = lerpAngle(entity.rotation, Math.PI / 2, turnSpeed);
           break;
         }
+      })
+      
+      // Trail
+      new Debris(entity.world, {
+        color: `rgba(241, 250, 238, .6)`,
+        position: {
+          x: entity.position.x,
+          y: entity.position.y,
+        },
+        lifeTime: 3000,
+        velocity: {x: 0, y: 0},
+        size: 6,
       })
     });
   };
@@ -221,17 +234,27 @@ export class SpaceshipRenderer extends System{
       Renderer.ctx.closePath()
       Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
       // Shield
-      if(!entity.hasShield) return
+      if(entity.hasShield){
+        entity.shieldCurrentTime += Time.delta;
+        if(entity.shieldCurrentTime > entity.shieldAnimTime) entity.shieldCurrentTime = entity.shieldAnimTime;
+      }else{
+        entity.shieldCurrentTime -= Time.delta * 3;
+        if(entity.shieldCurrentTime < 0) entity.shieldCurrentTime = 0;
+      }
+      const currentTime = entity.shieldCurrentTime / entity.shieldAnimTime;
+      const currentAnimScale = ((1 - currentTime) * 2);
+      const shieldSize = (entity.size * Renderer.pixelRatio) + (currentAnimScale * 4);
       Renderer.ctx.translate(
         entity.position.x * Renderer.pixelRatio, 
         entity.position.y * Renderer.pixelRatio
       )
-      Renderer.ctx.lineWidth = 1 * Renderer.pixelRatio;
+      Renderer.ctx.lineWidth = (1 * Renderer.pixelRatio) + (currentAnimScale * 2);
       Renderer.ctx.strokeStyle = entity.shieldColor
       Renderer.ctx.beginPath()
-      const shieldSize = entity.size * Renderer.pixelRatio;
+      Renderer.ctx.globalAlpha = currentTime;
       Renderer.ctx.arc(0, 0, shieldSize, 0, 2 * Math.PI);
       Renderer.ctx.stroke()
+      Renderer.ctx.globalAlpha = 1;
       Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
     })
   }
@@ -256,8 +279,8 @@ export class AsteroidRenderer extends System{
   }
 }
 
-export class DebrisRenderer extends System{
-  dependencies = [Position, Size, DebrisRenderable, AutoDestroy];
+export class ParticlesRenderer extends System{
+  dependencies = [Position, Size, ParticlesRenderable, AutoDestroy];
   onUpdate = (entities) => {
     entities.forEach(entity => {
       Renderer.ctx.translate(

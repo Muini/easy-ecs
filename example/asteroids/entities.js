@@ -7,7 +7,7 @@ import {
   Controllable, 
   AsteroidRenderable, 
   SpaceshipRenderable, 
-  DebrisRenderable, 
+  ParticlesRenderable, 
   Collision, 
   Shield, 
   AutoDestroy, 
@@ -15,7 +15,8 @@ import {
   UIGaugeRenderable, 
   UITextRenderable, 
   UIText, 
-  Score } from './components'
+  Score, 
+} from './components'
 
 // ====================================
 // Game entities
@@ -30,7 +31,7 @@ export class Asteroid extends SpaceBody {
 }
 
 export class Debris extends SpaceBody {
-  static components = [...super.components, AutoDestroy, DebrisRenderable]
+  static components = [...super.components, AutoDestroy, ParticlesRenderable]
 }
 
 export class Spaceship extends SpaceBody {
