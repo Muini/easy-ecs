@@ -81,14 +81,15 @@ export class Renderer extends Addon {
   }
 }
 export class SaveSystem extends Addon {
-  static saveGame = (world, saveName) => {
+  static saveWorld = (world, saveName) => {
     const saveFile = {
       timestamp: Date.now(),
       entities: world.entities.map(entity => entity.serialize())
     }
     localStorage.setItem(`gamesave-${saveName}`, JSON.stringify(saveFile))
+    return saveFile
   }
-  static restoreGame = (world, saveName) => {
+  static restoreWorld = (world, saveName) => {
     const saveFile = localStorage.getItem(`gamesave-${saveName}`)
     const saveData = JSON.parse(saveFile);
     world.entities = []
@@ -131,3 +132,7 @@ export class Rules extends Addon {
     })
   }
 }
+
+export class Levels extends Addon {}
+export class Audio extends Addon {}
+export class Network extends Addon {}

@@ -2,14 +2,41 @@
 
   <head>
     <meta charset="utf-8">
-    <title>Easy ECS - The Game</title>
+    <title>Easy ECS - Modern Asteroids Demo</title>
     <style>
       * {
         padding: 0;
         margin: 0;
       }
+      body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #1d3557;
+        font-family: 'Arial';
+        font-size: 12px;
+        color: rgba(69, 123, 157, 1);
+      }
+      h1{
+        margin-top: 1em;
+        margin-bottom: .25em;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: rgba(168, 218, 220, 1);
+      }
+      p{
+        margin-bottom: 0.5em;
+        text-align: center;
+        line-height: 1.5em;
+      }
+      a{
+        color: rgba(168, 218, 220, 1);
+
+      }
       canvas {
         background: #1d3557;
+        border: 2px solid rgba(69, 123, 157, 1);
         display: block;
         margin: 0 auto;
       }
@@ -17,6 +44,9 @@
   </head>
 
   <body>
+    <h1>Asteroids Demo</h1>
+    <p>Made with <a href="https://github.com/Muini/easy-ecs" target="_blank">Easy ECS</a></p>
+    <p>Use SPACE to toggle your shield to hit asteroids<br> and move around with ARROWS</p>
     <canvas id="game"></canvas>
     <script src="./index.js"></script>
   </body>

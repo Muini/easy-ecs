@@ -14,8 +14,9 @@ import {
   UIGauge, 
   UIGaugeRenderable, 
   UITextRenderable, 
-  UIText, 
-  Score, 
+  UITextBase, 
+  Score,
+  Trail, 
 } from './components'
 
 // ====================================
@@ -35,7 +36,7 @@ export class Debris extends SpaceBody {
 }
 
 export class Spaceship extends SpaceBody {
-  static components = [...super.components, Collision, Controllable, Shield, SpaceshipRenderable]
+  static components = [...super.components, Collision, Controllable, Shield, Trail, SpaceshipRenderable]
 }
 
 // ====================================
@@ -46,10 +47,10 @@ export class UIShieldBar extends Entity {
   static components = [UIGauge, UIGaugeRenderable]
 }
 
-export class UIHealthBar extends Entity {
-  static components = [UIGauge, UIGaugeRenderable]
+export class UIText extends Entity {
+  static components = [UITextBase, UITextRenderable]
 }
 
 export class UIScore extends Entity {
-  static components = [Score, UIText, UITextRenderable]
+  static components = [UITextBase, UITextRenderable, Score]
 }

@@ -2,14 +2,14 @@
 import { World } from '../core/ecs';
 import { Time, Input, Loop, Renderer, SaveSystem, Rules } from '../core/addons';
 
-import { GlobalMovements, SpaceshipMovements, SpaceshipRenderer, AsteroidRenderer, SpaceBodyCollisions, SpaceshipShieldControl, AutoDestroySystem, UIGaugeRenderer, UITextRenderer, ParticlesRenderer } from './asteroids/systems';
-import { Spaceship, Asteroid, Debris, UIScore, UIShieldBar } from './asteroids/entities';
+import { GlobalMovements, SpaceshipMovements, SpaceshipRenderer, AsteroidRenderer, SpaceBodyCollisions, SpaceshipShieldControl, AutoDestroySystem, UIGaugeRenderer, UITextRenderer, ParticlesRenderer, TrailSystem } from './asteroids/systems';
+import { Spaceship, Asteroid, Debris, UIScore, UIShieldBar, UIText } from './asteroids/entities';
 
 // ====================================
 // Game Setup
 // ====================================
 
-const WINDOW_SIZE = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
+const WINDOW_SIZE = 1024;
 Renderer.setup(document.getElementById('game'), WINDOW_SIZE, WINDOW_SIZE * 0.75);
 
 const world = new World({
@@ -18,7 +18,7 @@ const world = new World({
     Time, 
     Input, 
     Renderer,
-    SaveSystem, 
+    // SaveSystem, 
     Rules
   ],
   systems: [
@@ -30,6 +30,7 @@ const world = new World({
     SpaceBodyCollisions, 
     AutoDestroySystem,
     // Renderer
+    TrailSystem,
     ParticlesRenderer,
     AsteroidRenderer, 
     SpaceshipRenderer, 
@@ -56,7 +57,7 @@ const player = new Spaceship(world, {
     y: Renderer.height / 2 << 0,
   },
   size: 10,
-  mass: 8,
+  mass: 6,
   color: PALETTE.lightest,
   shieldColor: PALETTE.lightest
 })
@@ -64,7 +65,7 @@ const player = new Spaceship(world, {
 const ASTEROIDS_AMOUNT = 10;
 const ASTEROIDS_MIN_SIZE = 10;
 const ASTEROIDS_MAX_SIZE = 60;
-const ASTEROIDS_MAX_VELOCITY = 0.1;
+const ASTEROIDS_MAX_VELOCITY = 0.05;
 
 for (let i = 0; i < ASTEROIDS_AMOUNT; i++) {
   const size = Math.max(Math.random() * ASTEROIDS_MAX_SIZE << 0, ASTEROIDS_MIN_SIZE);
@@ -83,19 +84,35 @@ for (let i = 0; i < ASTEROIDS_AMOUNT; i++) {
   })
 }
 
+const scoreLabel = new UIText(world, {
+  x: Renderer.width * 0.05,
+  y: Renderer.height * 0.85,
+  text: 'SCORE',
+  fontSize: 12,
+  color: PALETTE.light,
+})
+
 const score = new UIScore(world, {
   x: Renderer.width * 0.05,
-  y: Renderer.height * 0.925,
+  y: Renderer.height * 0.88,
   text: '0',
   fontSize: 24,
   color: PALETTE.lightest,
+})
+
+const shieldLabel = new UIText(world, {
+  x: Renderer.width * 0.05,
+  y: Renderer.height * 0.92,
+  text: 'SHIELD',
+  fontSize: 12,
+  color: PALETTE.light,
 })
 
 const shieldBar = new UIShieldBar(world, {
   width: Renderer.width * 0.15,
   height: 12,
   x: Renderer.width * 0.05,
-  y: Renderer.height * 0.95,
+  y: Renderer.height * 0.925,
   color: PALETTE.lightest,
   maxValue: player.shieldPower,
   value: player.shieldPower,

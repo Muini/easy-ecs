@@ -14,8 +14,9 @@ import {
   AutoDestroy,
   UIGauge,
   UIGaugeRenderable,
-  UIText,
-  UITextRenderable
+  UITextBase,
+  UITextRenderable,
+  Trail,
 } from './components'
 import { Debris } from './entities';
 
@@ -26,7 +27,7 @@ import { Debris } from './entities';
 const MAX_VELOCITY = 0.5;
 export class GlobalMovements extends System {
   dependencies = [Position, Size, Velocity]
-  onUpdate = (entities) => {
+  onUpdate = (world, entities) => {
     entities.forEach(entity => {
       // Limit velocity
       entity.velocity.x = entity.velocity.x > MAX_VELOCITY ? MAX_VELOCITY : entity.velocity.x 
@@ -37,14 +38,16 @@ export class GlobalMovements extends System {
       entity.position.x += entity.velocity.x * Time.delta;
       entity.position.y += entity.velocity.y * Time.delta;
       // World bounds
-      if(entity.position.x + entity.size < 0){
-        entity.position.x = (Renderer.width) + entity.size
-      }else if(entity.position.x - entity.size > Renderer.width){
-        entity.position.x = -entity.size
-      }else if(entity.position.y + entity.size < 0){
-        entity.position.y = (Renderer.height) + entity.size
-      }else if(entity.position.y - entity.size > Renderer.height){
-        entity.position.y = -entity.size
+      if(entity.position.x /*+ entity.size*/ < 0){
+        entity.position.x = (Renderer.width)/* + entity.size*/
+      }else if(entity.position.x /*- entity.size*/ > Renderer.width){
+        // entity.position.x = -entity.size
+        entity.position.x = 0
+      }else if(entity.position.y /*+ entity.size*/ < 0){
+        entity.position.y = (Renderer.height) /*+ entity.size*/
+      }else if(entity.position.y /*- entity.size*/ > Renderer.height){
+        // entity.position.y = -entity.size
+        entity.position.y = 0
       }
     })
   }
@@ -60,7 +63,7 @@ function dot(v1, v2){
 }
 export class SpaceBodyCollisions extends System {
   dependencies = [Position, Velocity, Size, Collision]
-  onUpdate = (entities) => {
+  onUpdate = (world, entities) => {
     entities.forEach(entity => {
       let hit = null;
       entities.forEach(otherEntity => {
@@ -111,7 +114,7 @@ export class SpaceBodyCollisions extends System {
 
 export class AutoDestroySystem extends System{
   dependencies = [AutoDestroy];
-  onUpdate = (entities) => {
+  onUpdate = (world, entities) => {
     entities.forEach(entity => {
       entity.currentLifeTime -= Time.delta;
       if(entity.currentLifeTime <= 0){
@@ -137,7 +140,7 @@ const PLAYER_SPEED = 0.0005
 const PLAYER_TURN_SPEED = 0.005
 export class SpaceshipMovements extends System {
   dependencies = [Position, Velocity, Controllable];
-  onUpdate = (entities) => {
+  onUpdate = (world, entities) => {
     entities.forEach(entity => {
       const thrust = PLAYER_SPEED * Time.delta;
       const turnSpeed = PLAYER_TURN_SPEED * Time.delta;
@@ -161,25 +164,13 @@ export class SpaceshipMovements extends System {
           break;
         }
       })
-      
-      // Trail
-      new Debris(entity.world, {
-        color: `rgba(241, 250, 238, .6)`,
-        position: {
-          x: entity.position.x,
-          y: entity.position.y,
-        },
-        lifeTime: 3000,
-        velocity: {x: 0, y: 0},
-        size: 6,
-      })
     });
   };
 }
 
 export class SpaceshipShieldControl extends System {
   dependencies = [Shield, Collision, Controllable];
-  onUpdate = (entities) => {
+  onUpdate = (world, entities) => {
     entities.forEach(entity => {
       if(Input.isPressed(Input.INPUT_SPACE)){
         entity.hasShield = true;
@@ -208,9 +199,27 @@ export class SpaceshipShieldControl extends System {
 // Renderer systems
 // ====================================
 
+export class TrailSystem extends System{
+  dependencies = [Position, Trail]
+  onUpdate = (world, entities) => {
+    entities.forEach(entity => {
+      new Debris(world, {
+        color: entity.trailColor,
+        position: {
+          x: entity.position.x,
+          y: entity.position.y,
+        },
+        lifeTime: entity.trailLifetime,
+        velocity: {x: 0, y: 0},
+        size: entity.trailSize,
+      })
+    })
+  }
+}
+
 export class SpaceshipRenderer extends System{
   dependencies = [Position, Size, Shield, SpaceshipRenderable];
-  onUpdate = (entities) => {
+  onUpdate = (world, entities) => {
     entities.forEach(entity => {
       Renderer.ctx.translate(
         entity.position.x * Renderer.pixelRatio, 
@@ -262,7 +271,7 @@ export class SpaceshipRenderer extends System{
 
 export class AsteroidRenderer extends System{
   dependencies = [Position, Size, AsteroidRenderable];
-  onUpdate = (entities) => {
+  onUpdate = (world, entities) => {
     entities.forEach(entity => {
       Renderer.ctx.translate(
         entity.position.x * Renderer.pixelRatio, 
@@ -281,7 +290,7 @@ export class AsteroidRenderer extends System{
 
 export class ParticlesRenderer extends System{
   dependencies = [Position, Size, ParticlesRenderable, AutoDestroy];
-  onUpdate = (entities) => {
+  onUpdate = (world, entities) => {
     entities.forEach(entity => {
       Renderer.ctx.translate(
         entity.position.x * Renderer.pixelRatio, 
@@ -302,8 +311,8 @@ export class ParticlesRenderer extends System{
 }
 
 export class UITextRenderer extends System{
-  dependencies = [UIText, UITextRenderable];
-  onUpdate = (entities) => {
+  dependencies = [UITextBase, UITextRenderable];
+  onUpdate = (world, entities) => {
     entities.forEach(entity => {
       Renderer.ctx.translate(
         entity.x * Renderer.pixelRatio, 
@@ -322,7 +331,7 @@ export class UITextRenderer extends System{
 
 export class UIGaugeRenderer extends System{
   dependencies = [UIGauge, UIGaugeRenderable];
-  onUpdate = (entities) => {
+  onUpdate = (world, entities) => {
     entities.forEach(entity => {
       Renderer.ctx.translate(
         entity.x * Renderer.pixelRatio, 

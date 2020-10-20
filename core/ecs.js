@@ -1,7 +1,6 @@
 import { UUID } from './utils'
 
 export class Addon {
-  static get name(){ return this.constructor.name } 
   static onInit = (world) => {}
   static onBeforeUpdate = (world, time) => {}
   static onAfterUpdate = (world, time) => {}
@@ -23,16 +22,20 @@ export class World {
     if(this.entities.indexOf(entity) === -1) return console.warn('Easy-ECS: Cannot remove entity from world', entity)
     this.entities.splice( this.entities.indexOf(entity), 1 )
   }
+  getEntitiesWithComponents(componentsArray){
+    return componentsArray.length ? this.entities.filter(
+      entity => componentsArray.every(
+        component => entity.components.indexOf(component.name) >= 0
+      )
+    ) : this.entities
+  }
+  getEntitiesOfType(entityConstructor){}
   start(){
     // const now = performance.now()
     this.addons.forEach(addon => addon.onInit(this))
     this.systems.forEach(system => {
-      const entities = this.entities.filter(
-        entity => system.dependencies.every(
-          dependency => entity.components.indexOf(dependency.name) >= 0
-        )
-      )
-      system.onInit(entities)
+      const entities = this.getEntitiesWithComponents(system.dependencies)
+      system.onInit(this, entities)
     })
     // console.log('init took', performance.now() - now, 'ms\n')
   }
@@ -40,12 +43,8 @@ export class World {
     // const now = performance.now()
     this.addons.forEach(addon => addon.onBeforeUpdate(this, time))
     this.systems.forEach(system => {
-      const entities = this.entities.filter(
-        entity => system.dependencies.every(
-          dependency => entity.components.indexOf(dependency.name) >= 0
-        )
-      )
-      system.onUpdate(entities)
+      const entities = this.getEntitiesWithComponents(system.dependencies)
+      system.onUpdate(this, entities)
     })
     this.addons.forEach(addon => addon.onAfterUpdate(this, time))
     // console.log('update took', performance.now() - now, 'ms\n')
@@ -65,7 +64,7 @@ export class Entity {
   }
   addComponent(component, values = {}){
     component.props.forEach(prop => {
-      if(this[prop]) console.warn(`Easy-ECS: Entity prop ${prop} overwrite by component ${component.name}`, entity)
+      if(this[prop] && prop !== 'name') console.warn(`Easy-ECS: Entity prop ${prop} overwrite by component ${component.name}`, this)
       this[prop] = values[prop] ? values[prop] : component[prop]
     })
     this.components.push(component.name)
@@ -80,7 +79,7 @@ export class Entity {
   }
   serialize(){
     let data = {}
-    Object.keys(this).forEach(prop => prop !== 'world' ? data[prop] = this[prop] : false)
+    Object.keys(this).forEach(prop => (prop !== 'world' && prop !== 'name') ? data[prop] = this[prop] : false)
     return JSON.stringify(data)
   }
   unserialize(json){
@@ -94,6 +93,7 @@ export class Entity {
   }
 }
 export class Component {
+  static name = 'Unnamed Component'
   constructor(){
     throw Error('Easy-ECS: Cannot instantiate class Component');
   }
@@ -104,12 +104,8 @@ export class Component {
     }
     return returnProps
   }
-  static get name(){
-    return this.constructor.name
-  }
 }
 export class System {
-  get name(){ return this.constructor.name }
   dependencies = [];
   onInit = (entities) => {};
   onUpdate = (entities) => {};
