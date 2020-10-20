@@ -319,10 +319,7 @@ export class UITextRenderer extends System{
         entity.y * Renderer.pixelRatio
       )
       Renderer.ctx.font = `${entity.fontSize * Renderer.pixelRatio}px Helvetica`
-      // Renderer.ctx.shadowColor = 'rgba(0,0,0,1.0)'
-      // Renderer.ctx.shadowBlur = 6
       Renderer.ctx.fillStyle = entity.color
-      const textWidth = entity.text.length * entity.fontSize * Renderer.pixelRatio;
       Renderer.ctx.fillText(entity.text, 0, 0)
       Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
     })

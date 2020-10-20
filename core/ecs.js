@@ -1,6 +1,9 @@
 import { UUID } from './utils'
 
 export class Addon {
+  constructor(){
+    throw Error('Easy-ECS: Cannot instantiate class Addon');
+  }
   static onInit = (world) => {}
   static onBeforeUpdate = (world, time) => {}
   static onAfterUpdate = (world, time) => {}
