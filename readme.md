@@ -16,6 +16,12 @@
 
 Easy Entity Component System is a minimalist open-source Javascript library that helps you create games quickly. It's focused on developer happyness and performance. It has zero dependancies, is super lightweight and extensible.
 
+<p align="center">
+  <a target='_blank' href="https://easyecs-demo.netlify.app/">
+    ASTEROIDS DEMO PROJECT
+  </a>
+</p>
+
 ## Introduction
 
 ### Prerequisites
@@ -52,15 +58,18 @@ Creating the structure of your game is a declarative process
 import { Component } from '@muini/easy-ecs';
 // Component
 export class Position extends Component{
+  static name = "Position";
   static x = 0;
   static y = 0;
 }
 // Component inheritence
 export class Position3D extends Position{
+  static name = "Position3D";
   static z = 0;
 }
 // Another component
 export class Health extends Component{
+  static name = "Health";
   static health = 0;
   static maxHealth = 0;
 }
@@ -89,6 +98,11 @@ export class CharacterMovement extends System {
     // entities is filtered entities
     entities.forEach(entity => {
       entity.x += 0.1 * Time.delta; //Time is an Addon, see below
+      // You can access world with this.world
+      // You can query entities with 
+      // - this.world.getEntitiesWithComponents([...ComponentsClass])
+      // - this.world.getEntitiesOfType(Class)
+      // - this.world.getEntityById(id)
     })
   };
 }
@@ -127,9 +141,6 @@ const bob = new Character(world, {
 // Start the world, that's all !
 world.start()
 
-// You can manually update it with (useless if Loop Addon is used) :
-world.update(Date.now())
-
 ```
 
 ### Addon
@@ -148,7 +159,7 @@ Addon will never be instantiated and all properties must be static.
 - 🖼️ **Renderer**: 
   Canvas Renderer with basic access to `Renderer.canvas` and context `Renderer.ctx`
 - 💾 **SaveSystem**: 
-  Save & restore world state from `localStorage` using `const id = SaveSystem.saveGame(world, saveName)` and `SaveSystem.restoreGame(world, saveName)`
+  Save & restore world state from `localStorage` using `const id = SaveSystem.saveWorld(world, saveName)` and `SaveSystem.restoreWorld(world, saveName)`
 
 #### Custom Addon
 
@@ -177,10 +188,11 @@ export class Time extends Addon {
 - [x] Core
 - [x] Addons: Loop, Time, Input, Renderer(canvas), SaveSystem
 - [x] Readme
-- [ ] Example
+- [x] Example
+- [ ] Addon: Audio
 - [ ] Documentation
 - [ ] Addon: AssetManager
-- [ ] Addon: Audio
+- [ ] Addon: Network
 
 Other Addon ideas = UI (html based?), WebGL Renderer, ...
 
