@@ -15,7 +15,7 @@ export class World {
   constructor(props = {addons: [], systems: []}){
     this.addons = props.addons
     props.systems.forEach(system => {
-      this.systems = [...this.systems, new system()]
+      this.systems = [...this.systems, new system(this)]
     })
   }
   addEntity(entity){
@@ -32,13 +32,18 @@ export class World {
       )
     ) : this.entities
   }
-  getEntitiesOfType(entityConstructor){}
+  getEntitiesOfType(entityConstructor){
+    return this.entities.filter(entity => entity.constructor === entityConstructor)
+  }
+  getEntityById(id){
+    return this.entities.find(entity => entity.id === id)
+  }
   start(){
     // const now = performance.now()
     this.addons.forEach(addon => addon.onInit(this))
     this.systems.forEach(system => {
       const entities = this.getEntitiesWithComponents(system.dependencies)
-      system.onInit(this, entities)
+      system.onInit(entities)
     })
     // console.log('init took', performance.now() - now, 'ms\n')
   }
@@ -47,7 +52,7 @@ export class World {
     this.addons.forEach(addon => addon.onBeforeUpdate(this, time))
     this.systems.forEach(system => {
       const entities = this.getEntitiesWithComponents(system.dependencies)
-      system.onUpdate(this, entities)
+      system.onUpdate(entities)
     })
     this.addons.forEach(addon => addon.onAfterUpdate(this, time))
     // console.log('update took', performance.now() - now, 'ms\n')
@@ -110,6 +115,10 @@ export class Component {
 }
 export class System {
   dependencies = [];
+  world = null;
+  constructor(world){
+    this.world = world;
+  }
   onInit = (entities) => {};
   onUpdate = (entities) => {};
 }
