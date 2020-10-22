@@ -79,7 +79,7 @@ export class SpaceshipRenderer extends System{
         entity.position.x * Renderer.worldScale, 
         entity.position.y * Renderer.worldScale
       )
-      Renderer.ctx.lineWidth = (1 * Renderer.worldScale) + (currentAnimScale * 2);
+      Renderer.ctx.lineWidth = (2 * Renderer.worldScale) + (currentAnimScale * 2);
       Renderer.ctx.strokeStyle = entity.shieldColor
       Renderer.ctx.beginPath()
       Renderer.ctx.globalAlpha = currentTime;
@@ -140,7 +140,7 @@ export class UITextRenderer extends System{
         entity.x * Renderer.width * Renderer.worldScale, 
         entity.y * Renderer.height * Renderer.worldScale
       )
-      Renderer.ctx.font = `${entity.fontSize * Renderer.worldScale}px Helvetica`
+      Renderer.ctx.font = `${entity.fontSize}px Helvetica`
       Renderer.ctx.fillStyle = entity.color
       Renderer.ctx.fillText(entity.text, 0, 0)
       Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)

@@ -102,7 +102,7 @@ const score = new UIScore(world, {
   x: 0.05,
   y: 0.89,
   text: '0',
-  fontSize: 28,
+  fontSize: 24,
   color: PALETTE.lightest,
 })
 
