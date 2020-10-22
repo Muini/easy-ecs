@@ -220,10 +220,11 @@ export class TrailSystem extends System{
 export class SpaceshipRenderer extends System{
   dependencies = [Position, Size, Shield, SpaceshipRenderable];
   onUpdate = (world, entities) => {
+    console.log('world scale', Renderer.worldScale)
     entities.forEach(entity => {
       Renderer.ctx.translate(
-        entity.position.x * Renderer.pixelRatio, 
-        entity.position.y * Renderer.pixelRatio
+        entity.position.x * Renderer.worldScale, 
+        entity.position.y * Renderer.worldScale
       )
       Renderer.ctx.rotate(entity.rotation)
       
@@ -235,7 +236,7 @@ export class SpaceshipRenderer extends System{
       // Spaceship
       Renderer.ctx.fillStyle = entity.color;
       Renderer.ctx.beginPath()
-      const spaceshipSize = entity.size * Renderer.pixelRatio;
+      const spaceshipSize = entity.size * Renderer.worldScale;
       Renderer.ctx.moveTo(-spaceshipSize / 2, -spaceshipSize / 2)
       Renderer.ctx.lineTo(-spaceshipSize / 2, spaceshipSize / 2)
       Renderer.ctx.lineTo(spaceshipSize, 0)
@@ -252,12 +253,12 @@ export class SpaceshipRenderer extends System{
       }
       const currentTime = entity.shieldCurrentTime / entity.shieldAnimTime;
       const currentAnimScale = ((1 - currentTime) * 2);
-      const shieldSize = (entity.size * Renderer.pixelRatio) + (currentAnimScale * 4);
+      const shieldSize = (entity.size * Renderer.worldScale) + (currentAnimScale * 4);
       Renderer.ctx.translate(
-        entity.position.x * Renderer.pixelRatio, 
-        entity.position.y * Renderer.pixelRatio
+        entity.position.x * Renderer.worldScale, 
+        entity.position.y * Renderer.worldScale
       )
-      Renderer.ctx.lineWidth = (1 * Renderer.pixelRatio) + (currentAnimScale * 2);
+      Renderer.ctx.lineWidth = (1 * Renderer.worldScale) + (currentAnimScale * 2);
       Renderer.ctx.strokeStyle = entity.shieldColor
       Renderer.ctx.beginPath()
       Renderer.ctx.globalAlpha = currentTime;
@@ -274,13 +275,13 @@ export class AsteroidRenderer extends System{
   onUpdate = (world, entities) => {
     entities.forEach(entity => {
       Renderer.ctx.translate(
-        entity.position.x * Renderer.pixelRatio, 
-        entity.position.y * Renderer.pixelRatio
+        entity.position.x * Renderer.worldScale, 
+        entity.position.y * Renderer.worldScale
       )
       Renderer.ctx.rotate(entity.rotation)
       Renderer.ctx.fillStyle = entity.color;
       Renderer.ctx.beginPath()
-      const size = entity.size * Renderer.pixelRatio;
+      const size = entity.size * Renderer.worldScale;
       Renderer.ctx.arc(0, 0, size, 0, 2 * Math.PI);
       Renderer.ctx.fill()
       Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
@@ -293,15 +294,15 @@ export class ParticlesRenderer extends System{
   onUpdate = (world, entities) => {
     entities.forEach(entity => {
       Renderer.ctx.translate(
-        entity.position.x * Renderer.pixelRatio, 
-        entity.position.y * Renderer.pixelRatio
+        entity.position.x * Renderer.worldScale, 
+        entity.position.y * Renderer.worldScale
       )
       const lifeTimeRatio = entity.currentLifeTime / entity.lifeTime;
       Renderer.ctx.rotate(entity.rotation)
       Renderer.ctx.fillStyle = entity.color;
       Renderer.ctx.globalAlpha = lifeTimeRatio;
       Renderer.ctx.beginPath()
-      const size = entity.size * Renderer.pixelRatio * lifeTimeRatio;
+      const size = entity.size * Renderer.worldScale * lifeTimeRatio;
       Renderer.ctx.arc(0, 0, size, 0, 2 * Math.PI);
       Renderer.ctx.fill()
       Renderer.ctx.globalAlpha = 1;
@@ -315,10 +316,10 @@ export class UITextRenderer extends System{
   onUpdate = (world, entities) => {
     entities.forEach(entity => {
       Renderer.ctx.translate(
-        entity.x * Renderer.pixelRatio, 
-        entity.y * Renderer.pixelRatio
+        entity.x * Renderer.width * Renderer.worldScale, 
+        entity.y * Renderer.height * Renderer.worldScale
       )
-      Renderer.ctx.font = `${entity.fontSize * Renderer.pixelRatio}px Helvetica`
+      Renderer.ctx.font = `${entity.fontSize * Renderer.worldScale}px Helvetica`
       Renderer.ctx.fillStyle = entity.color
       Renderer.ctx.fillText(entity.text, 0, 0)
       Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0)
@@ -331,20 +332,20 @@ export class UIGaugeRenderer extends System{
   onUpdate = (world, entities) => {
     entities.forEach(entity => {
       Renderer.ctx.translate(
-        entity.x * Renderer.pixelRatio, 
-        entity.y * Renderer.pixelRatio
+        entity.x * Renderer.width * Renderer.worldScale, 
+        entity.y * Renderer.height * Renderer.worldScale
       )
-      const width = entity.width * Renderer.pixelRatio;
-      const height = entity.height * Renderer.pixelRatio;
+      const width = entity.width * Renderer.width * Renderer.worldScale;
+      const height = entity.height * Renderer.height * Renderer.worldScale;
       const currentPercent = entity.value / entity.maxValue;
-      const gap = 2 * Renderer.pixelRatio;
+      const gap = 2 * Renderer.worldScale;
       // Inner
       Renderer.ctx.fillStyle = entity.color;
       Renderer.ctx.beginPath();
       Renderer.ctx.rect(gap, gap, (width - (gap * 2)) * currentPercent, (height - (gap * 2)));
       Renderer.ctx.fill();
       // Outer
-      Renderer.ctx.lineWidth = 1 * Renderer.pixelRatio;
+      Renderer.ctx.lineWidth = 1 * Renderer.worldScale;
       Renderer.ctx.strokeStyle = currentPercent <= 0 ? `rgba(255, 50, 20, 1.0)` : `rgba(255, 255, 255, 1.0)`;
       Renderer.ctx.beginPath();
       Renderer.ctx.rect(0, 0, width, height);

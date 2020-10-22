@@ -11,7 +11,7 @@
     "url" : "https://github.com/Muini/easy-ecs.git"
   },
   "scripts": {
-      "dev:example": "parcel -p 5000 ./example/index.html --no-hmr --no-cache",
+      "dev:example": "parcel --no-hmr -p 5000 ./example/index.html",
       "build:example": "parcel build ./example/index.html --no-source-maps --no-cache --detailed-report --target example --dist-dir ./build/example",
       "build": "parcel build ./index.js --no-cache --detailed-report",
       "publish": "yarn build && npm pack && npm publish --access=public"
