@@ -4,6 +4,7 @@
 *.tgz
 node_modules
 dist
+build/example
 report.html
 npm-debug.log
 yarn-error.log
