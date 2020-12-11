@@ -1,5 +1,5 @@
 import { System } from "../../../core/ecs";
-import { Time, Input } from "../../../core/addons";
+import { Time, Input, Config } from "../../../core/addons";
 
 import {
   Position,
@@ -10,7 +10,6 @@ import {
 } from "../components";
 
 import { UIShieldBar } from "../entities";
-import { config } from "../config";
 import { lerpAngle } from "./utils";
 
 // ====================================
@@ -21,8 +20,8 @@ export class SpaceshipMovements extends System {
   dependencies = [Position, Velocity, Controllable];
   onUpdate = (entities) => {
     entities.forEach((entity) => {
-      const thrust = config.player.speed * Time.delta;
-      const turnSpeed = config.player.turn_speed * Time.delta;
+      const thrust = Config.player.speed * Time.delta;
+      const turnSpeed = Config.player.turn_speed * Time.delta;
       Input.keypress.forEach((key) => {
         switch (key) {
           case Input.INPUT_LEFT:

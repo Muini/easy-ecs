@@ -25,12 +25,6 @@ export class Collision extends Component {
   static mass = 10;
 }
 
-export class CollisionDetected extends Component {
-  static name = "CollisionDetected";
-  static hitTarget = null; //Entity
-  static impulse = 0;
-}
-
 export class AutoDestroy extends Component {
   static name = "AutoDestroy";
   static lifeTime = 1500; //ms

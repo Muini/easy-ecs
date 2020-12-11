@@ -1,5 +1,5 @@
 import { System } from "../../../core/ecs";
-import { Time, Renderer } from "../../../core/addons";
+import { Time, Renderer, Config } from "../../../core/addons";
 
 import {
   Position,
@@ -10,7 +10,6 @@ import {
 } from "../components";
 
 import { Asteroid, UIScore } from "../entities";
-import { config } from "../config";
 import {
   rotateVector,
   isSpaceship,
@@ -30,20 +29,20 @@ export class GlobalMovements extends System {
     entities.forEach((entity) => {
       // Limit velocity
       entity.velocity.x =
-        entity.velocity.x > config.global.max_velocity
-          ? config.global.max_velocity
+        entity.velocity.x > Config.global.max_velocity
+          ? Config.global.max_velocity
           : entity.velocity.x;
       entity.velocity.x =
-        entity.velocity.x < -config.global.max_velocity
-          ? -config.global.max_velocity
+        entity.velocity.x < -Config.global.max_velocity
+          ? -Config.global.max_velocity
           : entity.velocity.x;
       entity.velocity.y =
-        entity.velocity.y > config.global.max_velocity
-          ? config.global.max_velocity
+        entity.velocity.y > Config.global.max_velocity
+          ? Config.global.max_velocity
           : entity.velocity.y;
       entity.velocity.y =
-        entity.velocity.y < -config.global.max_velocity
-          ? -config.global.max_velocity
+        entity.velocity.y < -Config.global.max_velocity
+          ? -Config.global.max_velocity
           : entity.velocity.y;
       // Apply velocity to position
       entity.position.x += entity.velocity.x * Time.delta;
@@ -131,7 +130,7 @@ export class SpaceBodyCollisions extends System {
           bonus / 2,
           entity.position,
           { x: entity.velocity.x * 1.5, y: entity.velocity.y * 1.5 },
-          config.palette.lightest
+          Config.palette.lightest
         );
         this.addToScore(bonus);
       } else {
@@ -142,7 +141,7 @@ export class SpaceBodyCollisions extends System {
           malus * 2,
           entity.position,
           { x: entity.velocity.x * 1.5, y: entity.velocity.y * 1.5 },
-          config.palette.accentuation
+          Config.palette.accentuation
         );
         this.addToScore(-malus);
       }
@@ -159,11 +158,11 @@ export class SpaceBodyCollisions extends System {
   onBreak = (entity) => {
     if (!isAsteroid(entity)) return;
     // Break asteroid in half
-    const shouldSplit = entity.size > config.asteroids.min_size / 2;
+    const shouldSplit = entity.size > Config.asteroids.min_size / 2;
     if (shouldSplit) {
       const newSize = entity.size / 2;
       new Asteroid(this.world, {
-        color: config.palette.light,
+        color: Config.palette.light,
         position: {
           x: entity.position.x,
           y: entity.position.y,
@@ -173,7 +172,7 @@ export class SpaceBodyCollisions extends System {
         mass: newSize,
       });
       new Asteroid(this.world, {
-        color: config.palette.light,
+        color: Config.palette.light,
         position: {
           x: entity.position.x,
           y: entity.position.y,
@@ -188,7 +187,7 @@ export class SpaceBodyCollisions extends System {
       entity.size << 0,
       entity.position,
       entity.velocity,
-      config.palette.medium
+      Config.palette.medium
     );
     const bonus = (entity.size / 10) << 0;
     this.addToScore(bonus);
