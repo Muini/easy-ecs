@@ -9,9 +9,16 @@ import {
   AutoDestroy,
 } from "../components";
 
-import { Debris, Asteroid, Spaceship, UIScore } from "../entities";
-
+import { Asteroid, UIScore } from "../entities";
 import { config } from "../config";
+import {
+  rotateVector,
+  isSpaceship,
+  isAsteroid,
+  circleIntersect,
+  dot,
+  createParticles,
+} from "./utils";
 
 // ====================================
 // Game systems
@@ -57,44 +64,6 @@ export class GlobalMovements extends System {
   };
 }
 
-const isSpaceship = (entity) => {
-  return entity.constructor === Spaceship;
-};
-const isAsteroid = (entity) => {
-  return entity.constructor === Asteroid;
-};
-//https://spicyyoghurt.com/tutorials/html5-javascript-game-development/collision-detection-physics
-function circleIntersect(x1, y1, r1, x2, y2, r2) {
-  let squareDistance = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
-  return squareDistance <= (r1 + r2) * (r1 + r2);
-}
-function dot(v1, v2) {
-  return v1.x * v2.x + v1.y * v2.y;
-}
-const rotateVector = (v, angle) => {
-  const newV = { x: v.x, y: v.y };
-  newV.x = v.x * Math.cos(angle) - v.y * Math.sin(angle);
-  newV.y = v.x * Math.sin(angle) + v.y * Math.cos(angle);
-  return newV;
-};
-const createParticles = (world, number, basePosition, baseVelocity, color) => {
-  for (let i = 0; i < number; i++) {
-    const velocity = {
-      x: (Math.random() * baseVelocity.x) / 2,
-      y: (Math.random() * baseVelocity.y) / 2,
-    };
-    new Debris(world, {
-      color: color,
-      position: {
-        x: basePosition.x,
-        y: basePosition.y,
-      },
-      lifeTime: (500 + Math.random() * 1000) << 0,
-      velocity: rotateVector(velocity, Math.random() * Math.PI * 2),
-      size: 1.5,
-    });
-  }
-};
 export class SpaceBodyCollisions extends System {
   dependencies = [Position, Velocity, Size, Collision];
   onUpdate = (entities) => {

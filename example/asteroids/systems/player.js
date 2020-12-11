@@ -10,21 +10,13 @@ import {
 } from "../components";
 
 import { UIShieldBar } from "../entities";
-
 import { config } from "../config";
+import { lerpAngle } from "./utils";
 
 // ====================================
 // Player systems
 // ====================================
 
-function shortAngleDist(a0, a1) {
-  const max = Math.PI * 2;
-  const da = Math.sign(a1 - a0) * (Math.abs(a1 - a0) % max);
-  return Math.sign(a1 - a0) * ((2 * Math.abs(da)) % max) - da;
-}
-function lerpAngle(a0, a1, t) {
-  return a0 + shortAngleDist(a0, a1) * t;
-}
 export class SpaceshipMovements extends System {
   dependencies = [Position, Velocity, Controllable];
   onUpdate = (entities) => {
