@@ -6,6 +6,7 @@ export { Renderer } from './canvasRenderer';
 export { SaveSystem } from './saveSystem';
 
 // TODO:
+// export class Config extends Addon {}
 // export class Levels extends Addon {}
 // export class Audio extends Addon {}
 // export class Network extends Addon {}

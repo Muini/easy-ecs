@@ -1,4 +1,3 @@
-
 <p align="center">
   <img src="https://raw.githubusercontent.com/Muini/easy-ecs/master/easy-ecs.svg" alt="Easy ECS Logo" width="240" />
 </p>
@@ -54,52 +53,57 @@ npm i @muini/easy-ecs
 Creating the structure of your game is a declarative process
 
 #### Component
+
 ```javascript
-import { Component } from '@muini/easy-ecs';
+import { Component } from "@muini/easy-ecs";
 // Component
-export class Position extends Component{
+export class Position extends Component {
   static name = "Position";
   static x = 0;
   static y = 0;
 }
 // Component inheritence
-export class Position3D extends Position{
+export class Position3D extends Position {
   static name = "Position3D";
   static z = 0;
 }
 // Another component
-export class Health extends Component{
+export class Health extends Component {
   static name = "Health";
   static health = 0;
   static maxHealth = 0;
 }
 ```
+
 #### Entity
+
 ```javascript
-import { Entity } from '@muini/easy-ecs';
+import { Entity } from "@muini/easy-ecs";
 // Entity is just a list of Component classes
 export class Character extends Entity {
-  static components = [Position]
+  static components = [Position];
 }
 // Entity inheritence, you need to spread the parent components array
 export class Hero extends Character {
-  static components = [...super.components, Health]
+  static components = [...super.components, Health];
 }
 ```
+
 #### System
+
 ```javascript
 import { System } from '@muini/easy-ecs';
 // System declaration
 export class CharacterMovement extends System {
   // Component list that will filter entities that have those components
-  dependencies = [Position]; 
+  dependencies = [Position];
   // onUpdate Will fire every world.update (or every frame if Loop Addon is added)
-  onUpdate = (entities) => { 
+  onUpdate = (entities) => {
     // entities is filtered entities
     entities.forEach(entity => {
       entity.x += 0.1 * Time.delta; //Time is an Addon, see below
       // You can access world with this.world
-      // You can query entities with 
+      // You can query entities with
       // - this.world.getEntitiesWithComponents([...ComponentsClass])
       // - this.world.getEntitiesOfType(Class)
       // - this.world.getEntityById(id)
@@ -108,13 +112,14 @@ export class CharacterMovement extends System {
 }
 // Make your own system
 export class MySystem extends System {
-  dependencies = [MyComponent, ...]; 
+  dependencies = [MyComponent, ...];
   onInit = (entities) => {};
   onUpdate = (entities) => {};
 }
 ```
 
 #### World & Game start example
+
 ```javascript
 
 import { World } from '@muini/easy-ecs';
@@ -150,15 +155,15 @@ Addon will never be instantiated and all properties must be static.
 
 #### Official Addons
 
-- 🔁 **Loop**: 
+- 🔁 **Loop**:
   Will set a loop calling `world.update(timestamp)` based on `requestAnimationFrame`
-- ⏱️ **Time**: 
+- ⏱️ **Time**:
   Access `Time.time`, `Time.delta` and `Time.elapsed` easily anywhere
-- 🕹️ **Input**: 
+- 🕹️ **Input**:
   Access to current input, either `Input.mouse` position or `Input.isPressed(key)` to check if a specific key is pressed, or `Input.keypress` to get all keys pressed
-- 🖼️ **Renderer**: 
+- 🖼️ **Renderer**:
   Canvas Renderer with basic access to `Renderer.canvas` and context `Renderer.ctx`
-- 💾 **SaveSystem**: 
+- 💾 **SaveSystem**:
   Save & restore world state from `localStorage` using `const id = SaveSystem.saveWorld(world, saveName)` and `SaveSystem.restoreWorld(world, saveName)`
 
 #### Custom Addon
@@ -166,9 +171,15 @@ Addon will never be instantiated and all properties must be static.
 ```javascript
 // Example of a new addon
 export class MyAddon extends Addon {
-  static onInit = (world) => { /*Do stuff*/ }
-  static onBeforeUpdate = (world, time) => { /*Do stuff*/ }
-  static onAfterUpdate = (world, time) => { /*Do stuff*/ }
+  static onInit = (world) => {
+    /*Do stuff*/
+  };
+  static onBeforeUpdate = (world, time) => {
+    /*Do stuff*/
+  };
+  static onAfterUpdate = (world, time) => {
+    /*Do stuff*/
+  };
 }
 // Example of Time Addon
 export class Time extends Addon {
@@ -179,9 +190,19 @@ export class Time extends Addon {
     Time.delta = time - Time.time;
     Time.time = time;
     Time.elapsed += Time.delta;
-  }
+  };
 }
 ```
+
+## Simple Rules
+
+Just a bunch of rules that I try to follow to make everything nice, that are from [this video](https://www.youtube.com/watch?v=W3aieHjyNvw) :
+
+- Components have no functions
+- Systems have no states
+- Shared code lives in utils
+- Complex side effects should be deferred
+- System can't call other systems
 
 ## Roadmap
 
@@ -192,15 +213,16 @@ export class Time extends Addon {
 - [ ] Addon: Audio
 - [ ] Documentation
 - [ ] Addon: AssetManager
+- [ ] Multithreading
 - [ ] Addon: Network
 
 Other Addon ideas = UI (html based?), WebGL Renderer, ...
 
 ## Inspired by
 
-* [Unity](https://unity.com/) - ECS approach from Unity game engine
-* [ECSY](https://ecsy.io/) - ECS approach from Mozilla team
-* [MattDesl](https://twitter.com/mattdesl/status/1283089334791536641) - ECS approach from MattDesl
+- [Unity](https://unity.com/) - ECS approach from Unity game engine
+- [ECSY](https://ecsy.io/) - ECS approach from Mozilla team
+- [MattDesl](https://twitter.com/mattdesl/status/1283089334791536641) - ECS approach from MattDesl
 
 ## Contributing
 
@@ -208,11 +230,10 @@ Feel free to open issues for questions, bugs or improvements & PR !
 
 ## Authors
 
-* **Corentin Flach** - *Initial work* - [Github](https://github.com/CorentinFlach)
+- **Corentin Flach** - _Initial work_ - [Github](https://github.com/CorentinFlach)
 
 <!-- See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project. -->
 
 ## License
 
 This project is licensed under the MIT License
-
