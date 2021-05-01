@@ -45,26 +45,37 @@ export class World {
   }
   start() {
     // const now = performance.now()
-    this.addons.forEach((addon) => addon.onInit(this));
-    this.systems.forEach((system) => {
+    for (let a = 0; a < this.addons.length; a++) {
+      const addon = this.addons[a];
+      addon.onInit(this);
+    }
+    for (let s = 0; s < this.systems.length; s++) {
+      const system = this.systems[s];
       const entities = this.getEntitiesWithComponents(system.dependencies);
       system.onInit(entities);
-    });
+    }
     // console.log('init took', performance.now() - now, 'ms\n')
   }
   update(time) {
     // const now = performance.now()
-    this.addons.forEach((addon) => addon.onBeforeUpdate(this, time));
-    this.systems.forEach((system) => {
+    for (let a = 0; a < this.addons.length; a++) {
+      const addon = this.addons[a];
+      addon.onBeforeUpdate(this, time);
+    }
+    for (let s = 0; s < this.systems.length; s++) {
+      const system = this.systems[s];
       const entities = this.getEntitiesWithComponents(system.dependencies);
       system.onUpdate(entities);
-    });
-    this.addons.forEach((addon) => addon.onAfterUpdate(this, time));
+    }
+    for (let a = 0; a < this.addons.length; a++) {
+      const addon = this.addons[a];
+      addon.onAfterUpdate(this, time);
+    }
     // console.log('update took', performance.now() - now, 'ms\n')
   }
 }
 export class Entity {
-  id = UUID();
+  id = Date.now();
   components = [];
   world = null;
   static name = "Entity";
