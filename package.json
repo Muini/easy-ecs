@@ -7,14 +7,15 @@
   "license": "MIT",
   "private": false,
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/Muini/easy-ecs.git"
+    "type": "git",
+    "url": "https://github.com/Muini/easy-ecs.git"
   },
   "scripts": {
-      "dev:example": "parcel --no-hmr -p 5000 ./example/index.html",
-      "build:example": "parcel build ./example/index.html --no-source-maps --no-cache --detailed-report --target example --dist-dir ./build/example",
-      "build": "parcel build ./index.js --no-cache --detailed-report",
-      "publish": "yarn build && npm pack && npm publish --access=public"
+    "dev:example": "parcel --no-cache --no-hmr -p 5000 ./example/index.html",
+    "dev:ecs2": "parcel --no-cache --no-hmr -p 5000 ./example/ecs2/index.html",
+    "build:example": "parcel build ./example/index.html --no-source-maps --no-cache --detailed-report --target example --dist-dir ./build/example",
+    "build": "parcel build ./index.js --no-cache --detailed-report",
+    "publish": "yarn build && npm pack && npm publish --access=public"
   },
   "targets": {
     "example": {

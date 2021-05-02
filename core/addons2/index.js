@@ -3,7 +3,7 @@ export { Loop } from "./loop";
 export { Input } from "./input";
 export { Renderer } from "./canvasRenderer";
 export { SaveSystem } from "./saveSystem";
-export { Config } from "./config";
+// export { Config } from "./config";
 
 // TODO:
 // export class Levels extends Addon {}
