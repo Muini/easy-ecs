@@ -13,6 +13,9 @@ export const Input = (function () {
     get mouse() {
       return _mouse;
     },
+    get keypress() {
+      return _keypress;
+    },
     isPressed: (key) => {
       return _keypress.indexOf(key) !== -1;
     },

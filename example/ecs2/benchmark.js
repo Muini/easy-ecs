@@ -9,7 +9,7 @@ import {
   initWorld,
   addEntityToWorld,
 } from "../../core/ecs2";
-import { SaveSystem } from "../../core/addons2/SaveSystem";
+import { SaveSystem } from "../../core/addons2";
 
 let start = performance.now();
 
@@ -22,6 +22,20 @@ const Axe = newComponent("axe", { damage: 1, range: 2 });
 const Sword = newComponent("sword", { damage: 2, range: 4 });
 const Ennemy = newComponent("ennemy", {});
 const Hero = newComponent("hero", {});
+// ====================================
+// Entities
+// ====================================
+const hero = newEntity([Position, Health, Hero, Sword], {
+  position: [0, 0],
+  health: { hp: 1000, maxHp: 1000 },
+});
+const ennemy = newEntity([Position, Health, Ennemy, Axe], {
+  position: [Math.ceil(Math.random() * 1000), Math.ceil(Math.random() * 1000)],
+  health: {
+    maxHp: 4,
+    hp: 4,
+  },
+});
 // ====================================
 // Systems
 // ====================================
@@ -65,21 +79,10 @@ start = performance.now();
 // ====================================
 const world = newWorld([Die, HeroAttack, EnnemyAttack]);
 // Heros
-const hero = newEntity([Position, Health, Hero, Sword], {
-  position: [0, 0],
-  health: { hp: 1000, maxHp: 1000 },
-});
 for (let i = 0; i < 10000; i++) {
   addEntityToWorld(hero, world);
 }
 // Ennemies
-const ennemy = newEntity([Position, Health, Ennemy, Axe], {
-  position: [Math.ceil(Math.random() * 1000), Math.ceil(Math.random() * 1000)],
-  health: {
-    maxHp: 4,
-    hp: 4,
-  },
-});
 for (let i = 0; i < 10000; i++) {
   addEntityToWorld(ennemy, world);
 }

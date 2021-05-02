@@ -76,7 +76,7 @@ export function newComponent(name, data) {
 }
 export function addComponentToEntity(entity, component) {
   const name = component.name.toLowerCase();
-  entity[name] = deepclone(component.data);
+  if (component.data) entity[name] = deepclone(component.data);
   entity.components.push(component.name);
   return entity;
 }
