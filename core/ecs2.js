@@ -10,9 +10,11 @@ export function newWorld(systems = [], addons = []) {
     entities: [],
   };
 }
-export function addEntityToWorld(entity, world) {
-  world.entities.push(deepclone(entity));
-  return entity;
+export function addEntityToWorld(entity, world, defaultValues = null) {
+  const newEntity = deepclone(entity);
+  applyValuesToEntity(newEntity, defaultValues);
+  world.entities.push(newEntity);
+  return newEntity;
 }
 export function removeEntityFromWorld(entity, world) {
   if (world.entities.indexOf(entity) === -1)
@@ -101,11 +103,7 @@ export function newEntity(components, defaultValues = {}) {
     const component = components[c];
     addComponentToEntity(entity, component);
   }
-  if (Object.keys(defaultValues).length) {
-    for (const key in defaultValues) {
-      entity[key] = defaultValues[key];
-    }
-  }
+  applyValuesToEntity(entity, defaultValues);
   return entity;
 }
 export function queryEntities(world, components = []) {
@@ -119,6 +117,19 @@ export function queryEntities(world, components = []) {
 }
 export function queryEntityById(world, id) {
   return world.entities.find((entity) => entity.id === id);
+}
+export function applyValuesToEntity(entity, values) {
+  if (!values || !Object.keys(values) || !Object.keys(values).length) return;
+  for (const key in values) {
+    if (entity[key]) entity[key] = values[key];
+    else
+      console.warn(
+        "Easy-ECS: Default values",
+        key,
+        "does not exist on entity",
+        entity
+      );
+  }
 }
 
 // =======================================

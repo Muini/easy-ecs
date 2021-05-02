@@ -121,6 +121,9 @@ const world = newWorld(
 );
 
 addEntityToWorld(Hero, world);
+addEntityToWorld(Character, world, {
+  position: [Math.ceil(Math.random() * 512), Math.ceil(Math.random() * 512)],
+});
 
 // ====================================
 // Game Start
