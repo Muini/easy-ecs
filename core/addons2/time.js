@@ -14,7 +14,6 @@ export const Time = (function () {
       return _elapsed;
     },
     onBeforeUpdate: (world, time) => {
-      console.log("update time addon", time);
       _delta = time - _time;
       _time = time;
       _elapsed += _delta;

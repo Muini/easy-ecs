@@ -7,97 +7,81 @@ import {
   newSystem,
   removeEntityFromWorld,
   initWorld,
+  addEntityToWorld,
 } from "../../core/ecs2";
-import { Time } from "../../core/addons2/time";
-import { Loop } from "../../core/addons2/loop";
+import { SaveSystem } from "../../core/addons2/SaveSystem";
 
 let start = performance.now();
 
-const world = newWorld();
 // ====================================
 // Components
 // ====================================
-const Position = newComponent("Position", [0, 0], world);
-const Health = newComponent("Health", { maxHp: 0, hp: 0 }, world);
-const Axe = newComponent("Axe", { damage: 1, range: 2 }, world);
-const Sword = newComponent("Sword", { damage: 2, range: 4 }, world);
-const Ennemy = newComponent("Ennemy", {}, world);
-const Hero = newComponent("Hero", {}, world);
+const Position = newComponent("position", [0, 0]);
+const Health = newComponent("health", { maxHp: 0, hp: 0 });
+const Axe = newComponent("axe", { damage: 1, range: 2 });
+const Sword = newComponent("sword", { damage: 2, range: 4 });
+const Ennemy = newComponent("ennemy", {});
+const Hero = newComponent("hero", {});
 // ====================================
 // Systems
 // ====================================
-const Die = newSystem(
-  "Die",
-  null,
-  (world) => {
-    const entities = queryEntities(world, [Health]);
-    for (let i = 0; i < entities.length; i++) {
-      const entity = entities[i];
-      if (entity.hp < 0) {
-        removeEntityFromWorld(entity, world);
-      }
+const Die = newSystem("Die", null, (world) => {
+  const entities = queryEntities(world, [Health]);
+  if (!entities.length) return;
+  for (let i = 0; i < entities.length; i++) {
+    const entity = entities[i];
+    if (entity.health.hp < 0) {
+      removeEntityFromWorld(entity, world);
     }
-  },
-  world
-);
-const HeroAttack = newSystem(
-  "HeroAttack",
-  null,
-  (world) => {
-    const entities = queryEntities(world, [Hero, Sword]);
-    const ennemies = queryEntities(world, [Ennemy, Health]);
-    for (let i = 0; i < entities.length; i++) {
-      const hero = entities[i];
-      const firstEnnemy = ennemies[0];
-      firstEnnemy.hp -= hero.damage;
-    }
-  },
-  world
-);
-const EnnemyAttack = newSystem(
-  "EnnemyAttack",
-  null,
-  (world) => {
-    const entities = queryEntities(world, [Ennemy, Axe]);
-    const heros = queryEntities(world, [Hero, Health]);
-    for (let i = 0; i < entities.length; i++) {
-      const ennemy = entities[i];
-      const firstHero = heros[0];
-      firstHero.hp -= ennemy.damage;
-    }
-  },
-  world
-);
+  }
+});
+const HeroAttack = newSystem("HeroAttack", null, (world) => {
+  const entities = queryEntities(world, [Hero, Sword]);
+  if (!entities.length) return;
+  const ennemies = queryEntities(world, [Ennemy, Health]);
+  if (!ennemies.length) return;
+  for (let i = 0; i < entities.length; i++) {
+    const hero = entities[i];
+    const firstEnnemy = ennemies[0];
+    firstEnnemy.health.hp -= hero.sword.damage;
+  }
+});
+const EnnemyAttack = newSystem("EnnemyAttack", null, (world) => {
+  const entities = queryEntities(world, [Ennemy, Axe]);
+  if (!entities.length) return;
+  const heros = queryEntities(world, [Hero, Health]);
+  if (!heros.length) return;
+  for (let i = 0; i < entities.length; i++) {
+    const ennemy = entities[i];
+    const firstHero = heros[0];
+    firstHero.health.hp -= ennemy.axe.damage;
+  }
+});
 const initTime = performance.now() - start;
 start = performance.now();
 
 // ====================================
 // Scene Setup
 // ====================================
-const Bob = newEntity(
-  [Position, Health, Hero, Sword],
-  {
-    position: [0, 0],
-    health: { hp: 1000, maxHp: 1000 },
+const world = newWorld([Die, HeroAttack, EnnemyAttack]);
+// Heros
+const hero = newEntity([Position, Health, Hero, Sword], {
+  position: [0, 0],
+  health: { hp: 1000, maxHp: 1000 },
+});
+for (let i = 0; i < 10000; i++) {
+  addEntityToWorld(hero, world);
+}
+// Ennemies
+const ennemy = newEntity([Position, Health, Ennemy, Axe], {
+  position: [Math.ceil(Math.random() * 1000), Math.ceil(Math.random() * 1000)],
+  health: {
+    maxHp: 4,
+    hp: 4,
   },
-  world
-);
-
-for (let i = 0; i < 4000; i++) {
-  newEntity(
-    [Position, Health, Ennemy, Axe],
-    {
-      position: [
-        Math.ceil(Math.random() * 1000),
-        Math.ceil(Math.random() * 1000),
-      ],
-      health: {
-        maxHp: 4,
-        hp: 4,
-      },
-    },
-    world
-  );
+});
+for (let i = 0; i < 10000; i++) {
+  addEntityToWorld(ennemy, world);
 }
 // console.log(world.entities[0].maxHp);
 const worldSetupTime = performance.now() - start;
@@ -120,7 +104,9 @@ for (let i = 0; i < UPDATES; i++) {
 
 const updateTime = performance.now() - start;
 console.log(
-  "init time",
+  "Entities amount",
+  world.entities.length,
+  "\ninit time",
   initTime,
   "ms \nworld setup time",
   worldSetupTime,
@@ -134,4 +120,11 @@ console.log(
   initTime + worldSetupTime + worldStartTime + updateTime,
   "ms"
 );
-console.log(world);
+
+start = performance.now();
+SaveSystem.saveWorld("test", world);
+const saveTime = performance.now() - start;
+start = performance.now();
+SaveSystem.restoreWorld("test", world);
+const restoreTime = performance.now() - start;
+console.log("save time", saveTime, "ms \nrestore time", restoreTime, "ms");

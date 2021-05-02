@@ -3,24 +3,21 @@ import { deepclone } from "./utils";
 // =======================================
 // World
 // =======================================
-export function newWorld(addons = []) {
+export function newWorld(systems = [], addons = []) {
   return {
-    components: [],
     addons,
-    systems: [],
+    systems,
     entities: [],
   };
 }
 export function addEntityToWorld(entity, world) {
-  world.entities.push(entity);
+  world.entities.push(deepclone(entity));
+  return entity;
 }
 export function removeEntityFromWorld(entity, world) {
   if (world.entities.indexOf(entity) === -1)
     return console.warn("Easy-ECS: Cannot remove entity from world", entity);
   world.entities.splice(world.entities.indexOf(entity), 1);
-}
-export function addComponentToWorld(component, world) {
-  world.components.push(component);
 }
 export function addSystemToWorld(system, world) {
   world.systems.push(system);
@@ -49,20 +46,37 @@ export function updateWorld(world, time = 0) {
     if (addon.onAfterUpdate) addon.onAfterUpdate(world, time);
   }
 }
+export function recoverWorld(world, newWorld) {
+  world.entities = newWorld.entities;
+  newWorld.addons.forEach((addon) => {
+    const existingAddon = world.addons.find(
+      (waddon) => waddon.name === addon.name
+    );
+    if (!existingAddon) {
+      world.addon.push(addon);
+    } else {
+      for (const key in addon) {
+        try {
+          existingAddon[key] = addon[key];
+        } catch {}
+      }
+    }
+  });
+}
 
 // =======================================
 // Components
 // =======================================
-export function newComponent(name, data, world = null) {
+export function newComponent(name, data) {
   const component = {
     name,
     data,
   };
-  if (world) addComponentToWorld(component, world);
   return component;
 }
 export function addComponentToEntity(entity, component) {
-  entity[component.name] = deepclone(component.data);
+  const name = component.name.toLowerCase();
+  entity[name] = deepclone(component.data);
   entity.components.push(component.name);
   return entity;
 }
@@ -78,7 +92,7 @@ export function removeComponentFromEntity(entity, component) {
 // =======================================
 // Entities
 // =======================================
-export function newEntity(components, defaultValues = {}, world = null) {
+export function newEntity(components, defaultValues = {}) {
   let entity = {
     id: Date.now(),
     components: [],
@@ -92,7 +106,6 @@ export function newEntity(components, defaultValues = {}, world = null) {
       entity[key] = defaultValues[key];
     }
   }
-  if (world) addEntityToWorld(entity, world);
   return entity;
 }
 export function queryEntities(world, components = []) {

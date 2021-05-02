@@ -98,12 +98,14 @@ const world = new World({
 // ====================================
 // Scene Setup
 // ====================================
-new Bob(world, {
-  position: { x: 0, y: 0 },
-  maxHp: 1000,
-  hp: 1000,
-});
-for (let i = 0; i < 4000; i++) {
+for (let i = 0; i < 10000; i++) {
+  new Bob(world, {
+    position: { x: 0, y: 0 },
+    maxHp: 1000,
+    hp: 1000,
+  });
+}
+for (let i = 0; i < 10000; i++) {
   new Goblin(world, {
     position: {
       x: Math.ceil(Math.random() * 1000),
