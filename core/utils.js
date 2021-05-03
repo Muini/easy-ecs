@@ -25,3 +25,49 @@ export function deepclone(o) {
   }
   return out;
 }
+
+export function Log(type, message, caller) {
+  const log = {
+    type: type,
+    class: caller?.name ?? "ECS",
+    message: message,
+  };
+  function getColor(type) {
+    let color = undefined;
+    switch (type) {
+      case "success":
+        color = "LimeGreen";
+        break;
+      case "info":
+        color = "DodgerBlue";
+        break;
+      case "warn":
+        color = "Orange";
+        break;
+      case "error":
+      default:
+        color = "OrangeRed";
+        break;
+    }
+    return color;
+  }
+  function parseMessage(message) {
+    const parsedMessage = message.replace(
+      /c:(\w*){(.*)}/gi,
+      (cores, color, message) => {
+        return `${message}`;
+      }
+    );
+    return parsedMessage;
+  }
+  const logMessage = `%c${log.class}%c ${parseMessage(log.message)}`;
+  const styles =
+    "color:white;background:" + getColor(log.type) + ";padding:2px 4px;";
+
+  // Write it in the console
+  if (log.type === "error")
+    console.error(logMessage, styles, "color:black", caller);
+  else if (log.type === "warn")
+    console.warn(logMessage, styles, "color:black", caller);
+  else console.info(logMessage, styles, "color:black");
+}

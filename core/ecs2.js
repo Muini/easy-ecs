@@ -1,4 +1,4 @@
-import { deepclone, nanoid } from "./utils";
+import { deepclone, nanoid, Log } from "./utils";
 
 // =======================================
 // World
@@ -19,7 +19,7 @@ export function instantiateEntity(entity, world, defaultValues = null) {
 }
 export function removeEntityFromWorld(entity, world) {
   if (world.entities.indexOf(entity) === -1)
-    return console.warn("Easy-ECS: Cannot remove entity from world", entity);
+    return Log("warn", "Cannot remove entity from world", entity);
   world.entities.splice(world.entities.indexOf(entity), 1);
 }
 export function addSystemToWorld(system, world) {
@@ -61,7 +61,13 @@ export function recoverWorld(world, newWorld) {
       for (const key in addon) {
         try {
           existingAddon[key] = addon[key];
-        } catch {}
+        } catch {
+          return Log(
+            "warn",
+            `Could not recover ${key} from addon ${addon.name}`,
+            newWorld
+          );
+        }
       }
     }
   });
@@ -128,12 +134,7 @@ export function applyValuesToEntity(entity, values) {
   for (const key in values) {
     if (entity[key]) entity[key] = values[key];
     else
-      console.warn(
-        "Easy-ECS: Default values",
-        key,
-        "does not exist on entity",
-        entity
-      );
+      Log("warn", `Default values ${key} does not exist on ${entity}`, entity);
   }
 }
 
