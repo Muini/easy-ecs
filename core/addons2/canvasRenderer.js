@@ -1,3 +1,4 @@
+//🖼️ Renderer addon
 export const Renderer = (function () {
   let _canvas = null;
   let _ctx = null;

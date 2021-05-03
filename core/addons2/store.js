@@ -1,5 +1,6 @@
 import { recoverWorld } from "../ecs2";
 
+// 📑 Store addon
 export const Store = (function () {
   let _MAXSTATES = 100;
   let _states = [];

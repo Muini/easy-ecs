@@ -1,5 +1,6 @@
 import { updateWorld } from "../ecs2";
 
+// 🔁 Loop addon
 export const Loop = (function () {
   let _raf = null;
   const _loop = (world) => {

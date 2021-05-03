@@ -4,6 +4,7 @@ export const INPUT_UP = "ArrowUp";
 export const INPUT_DOWN = "ArrowDown";
 export const INPUT_SPACE = "Space";
 
+// 🕹️ Input addon
 export const Input = (function () {
   let _keydown = [];
   let _keypress = null;

@@ -1,4 +1,4 @@
-import { deepclone } from "./utils";
+import { deepclone, nanoid } from "./utils";
 
 // =======================================
 // World
@@ -10,8 +10,9 @@ export function newWorld(systems = [], addons = []) {
     entities: [],
   };
 }
-export function addEntityToWorld(entity, world, defaultValues = null) {
+export function instantiateEntity(entity, world, defaultValues = null) {
   const newEntity = deepclone(entity);
+  newEntity.id = nanoid();
   applyValuesToEntity(newEntity, defaultValues);
   world.entities.push(newEntity);
   return newEntity;
@@ -94,9 +95,10 @@ export function removeComponentFromEntity(entity, component) {
 // =======================================
 // Entities
 // =======================================
-export function newEntity(components, defaultValues = {}) {
+export function newEntity(name, components, defaultValues = {}) {
   let entity = {
-    id: Date.now(),
+    name: name,
+    id: nanoid(),
     components: [],
   };
   for (let c = 0; c < components.length; c++) {
@@ -114,6 +116,9 @@ export function queryEntities(world, components = []) {
         )
       )
     : world.entities;
+}
+export function queryEntitiesByName(world, name) {
+  return world.entities.find((entity) => entity.name === name);
 }
 export function queryEntityById(world, id) {
   return world.entities.find((entity) => entity.id === id);

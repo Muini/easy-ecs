@@ -7,7 +7,7 @@ import {
   newSystem,
   removeEntityFromWorld,
   initWorld,
-  addEntityToWorld,
+  instantiateEntity,
 } from "../../core/ecs2";
 import { SaveSystem } from "../../core/addons2";
 
@@ -25,11 +25,11 @@ const Hero = newComponent("hero", {});
 // ====================================
 // Entities
 // ====================================
-const hero = newEntity([Position, Health, Hero, Sword], {
+const hero = newEntity("Hero", [Position, Health, Hero, Sword], {
   position: [0, 0],
   health: { hp: 1000, maxHp: 1000 },
 });
-const ennemy = newEntity([Position, Health, Ennemy, Axe], {
+const ennemy = newEntity("Ennemy", [Position, Health, Ennemy, Axe], {
   position: [Math.ceil(Math.random() * 1000), Math.ceil(Math.random() * 1000)],
   health: {
     maxHp: 4,
@@ -80,11 +80,11 @@ start = performance.now();
 const world = newWorld([Die, HeroAttack, EnnemyAttack]);
 // Heros
 for (let i = 0; i < 10000; i++) {
-  addEntityToWorld(hero, world);
+  instantiateEntity(hero, world);
 }
 // Ennemies
 for (let i = 0; i < 10000; i++) {
-  addEntityToWorld(ennemy, world);
+  instantiateEntity(ennemy, world);
 }
 // console.log(world.entities[0].maxHp);
 const worldSetupTime = performance.now() - start;

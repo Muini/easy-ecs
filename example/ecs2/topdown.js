@@ -6,7 +6,7 @@ import {
   queryEntities,
   newSystem,
   initWorld,
-  addEntityToWorld,
+  instantiateEntity,
 } from "../../core/ecs2";
 import {
   Loop,
@@ -54,11 +54,11 @@ const Sprite = newComponent("sprite", {
 // ====================================
 // Entities
 // ====================================
-const Character = newEntity([Position, Movement, Sprite], {
+const Character = newEntity("Character", [Position, Movement, Sprite], {
   position: [0, 0],
   movement: { speed: 10 },
 });
-const Hero = newEntity([Position, Movement, Sprite, Controllable], {
+const Hero = newEntity("Hero", [Position, Movement, Sprite, Controllable], {
   position: [256, 256],
   movement: { speed: 10 },
 });
@@ -120,8 +120,8 @@ const world = newWorld(
   [Loop, Time, Input, Renderer, SaveSystem]
 );
 
-addEntityToWorld(Hero, world);
-addEntityToWorld(Character, world, {
+instantiateEntity(Hero, world);
+instantiateEntity(Character, world, {
   position: [Math.ceil(Math.random() * 512), Math.ceil(Math.random() * 512)],
 });
 

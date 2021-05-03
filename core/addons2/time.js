@@ -1,3 +1,4 @@
+// ⏱️ Time addon
 export const Time = (function () {
   let _time = 0;
   let _delta = 0;

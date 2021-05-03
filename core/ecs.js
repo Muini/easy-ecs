@@ -1,4 +1,4 @@
-import { UUID } from "./utils";
+import { nanoid } from "./utils";
 
 export class Addon {
   constructor() {

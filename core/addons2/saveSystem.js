@@ -1,5 +1,6 @@
 import { recoverWorld } from "../ecs2";
 
+// 💾 SaveSystem addon
 export const SaveSystem = (function () {
   return {
     name: "SaveSystem",
