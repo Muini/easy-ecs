@@ -51,19 +51,9 @@ export function Log(type, message, caller) {
     }
     return color;
   }
-  function parseMessage(message) {
-    const parsedMessage = message.replace(
-      /c:(\w*){(.*)}/gi,
-      (cores, color, message) => {
-        return `${message}`;
-      }
-    );
-    return parsedMessage;
-  }
-  const logMessage = `%c${log.class}%c ${parseMessage(log.message)}`;
+  const logMessage = `%c${log.class}%c ${log.message}`;
   const styles =
     "color:white;background:" + getColor(log.type) + ";padding:2px 4px;";
-
   // Write it in the console
   if (log.type === "error")
     console.error(logMessage, styles, "color:black", caller);

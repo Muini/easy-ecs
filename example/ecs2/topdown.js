@@ -10,12 +10,11 @@ import {
 } from "../../core/ecs2";
 import {
   Loop,
-  Time,
   Input,
-  Renderer,
   SaveSystem,
   // Config,
 } from "../../core/addons2";
+import { Renderer } from "../../core/addons2/WebGLRenderer";
 import {
   INPUT_LEFT,
   INPUT_RIGHT,
@@ -66,7 +65,7 @@ const Hero = newEntity("Hero", [Position, Movement, Sprite, Controllable], {
 // ====================================
 // Systems
 // ====================================
-const SpriteRenderer = newSystem("SpriteRenderer", null, (world) => {
+const SpriteRenderer = newSystem("SpriteRenderer", null, (world, dt) => {
   const entities = queryEntities(world, [Position, Sprite]);
   for (let i = 0; i < entities.length; i++) {
     const entity = entities[i];
@@ -88,11 +87,17 @@ const SpriteRenderer = newSystem("SpriteRenderer", null, (world) => {
   }
 });
 
-const MovementControl = newSystem("MovementControl", null, (world) => {
+const INPUT_LEFT = "ArrowLeft";
+const INPUT_RIGHT = "ArrowRight";
+const INPUT_UP = "ArrowUp";
+const INPUT_DOWN = "ArrowDown";
+const INPUT_SPACE = "Space";
+
+const MovementControl = newSystem("MovementControl", null, (world, dt) => {
   const entities = queryEntities(world, [Position, Movement, Controllable]);
   for (let i = 0; i < entities.length; i++) {
     const entity = entities[i];
-    const amount = entity.movement.speed * Time.delta * 0.025;
+    const amount = entity.movement.speed * dt * 0.025;
     Input.keypress.forEach((key) => {
       switch (key) {
         case INPUT_LEFT:
@@ -117,7 +122,7 @@ const MovementControl = newSystem("MovementControl", null, (world) => {
 // ====================================
 const world = newWorld(
   [MovementControl, SpriteRenderer],
-  [Loop, Time, Input, Renderer, SaveSystem]
+  [Loop, Input, Renderer, SaveSystem]
 );
 
 instantiateEntity(Hero, world);

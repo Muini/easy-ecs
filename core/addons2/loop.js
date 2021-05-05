@@ -17,7 +17,7 @@ export const Loop = (function () {
     get isRunning() {
       return _raf !== null;
     },
-    onBeforeUpdate: (world, time) => {
+    onBeforeUpdate: (world, dt) => {
       _loop(world);
     },
     stop: () => {

@@ -43,7 +43,7 @@ export const Store = (function () {
     apply: (world) => {
       _apply(world);
     },
-    onBeforeUpdate: (world, time) => {
+    onBeforeUpdate: (world, dt) => {
       if (_autoApply) _apply(world);
     },
   };

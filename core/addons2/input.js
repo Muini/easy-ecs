@@ -1,9 +1,3 @@
-export const INPUT_LEFT = "ArrowLeft";
-export const INPUT_RIGHT = "ArrowRight";
-export const INPUT_UP = "ArrowUp";
-export const INPUT_DOWN = "ArrowDown";
-export const INPUT_SPACE = "Space";
-
 // 🕹️ Input addon
 export const Input = (function () {
   let _keydown = [];

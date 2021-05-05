@@ -5,6 +5,7 @@ import { deepclone, nanoid, Log } from "./utils";
 // =======================================
 export function newWorld(systems = [], addons = []) {
   return {
+    time: performance.now(),
     addons,
     systems,
     entities: [],
@@ -25,7 +26,11 @@ export function removeEntityFromWorld(entity, world) {
 export function addSystemToWorld(system, world) {
   world.systems.push(system);
 }
+export function removeSystemFromWorld(system, world) {
+  // TODO
+}
 export function initWorld(world) {
+  world.time = performance.now();
   for (let a = 0; a < world.addons.length; a++) {
     const addon = world.addons[a];
     if (addon.init) addon.init(world);
@@ -36,21 +41,24 @@ export function initWorld(world) {
   }
 }
 export function updateWorld(world, time = 0) {
+  const deltaTime = time - world.time;
+  world.time = time;
   for (let a = 0; a < world.addons.length; a++) {
     const addon = world.addons[a];
-    if (addon.onBeforeUpdate) addon.onBeforeUpdate(world, time);
+    if (addon.onBeforeUpdate) addon.onBeforeUpdate(world, deltaTime);
   }
   for (let s = 0; s < world.systems.length; s++) {
     const system = world.systems[s];
-    if (system.update) system.update(world, time);
+    if (system.update) system.update(world, deltaTime);
   }
   for (let a = 0; a < world.addons.length; a++) {
     const addon = world.addons[a];
-    if (addon.onAfterUpdate) addon.onAfterUpdate(world, time);
+    if (addon.onAfterUpdate) addon.onAfterUpdate(world, deltaTime);
   }
 }
 export function recoverWorld(world, newWorld) {
   world.entities = newWorld.entities;
+  world.time = performance.now();
   newWorld.addons.forEach((addon) => {
     const existingAddon = world.addons.find(
       (waddon) => waddon.name === addon.name
@@ -93,9 +101,8 @@ export function removeComponentFromEntity(entity, component) {
   if (entity.components.indexOf(component.name) === -1) return;
   entity.components.splice(entity.components.indexOf(component.name), 1);
   if (!component.data) return;
-  component.data.forEach((prop) => {
-    delete entity[prop];
-  });
+  const name = component.name.toLowerCase();
+  delete entity[name];
 }
 
 // =======================================
