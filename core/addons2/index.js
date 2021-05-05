@@ -1,8 +1,8 @@
-export { Time } from "./time";
 export { Loop } from "./loop";
 export { Input } from "./input";
 export { Renderer } from "./canvasRenderer";
 export { SaveSystem } from "./saveSystem";
+export { Store } from "./store";
 // export { Config } from "./config";
 
 // TODO:

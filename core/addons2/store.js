@@ -1,4 +1,5 @@
 import { recoverWorld } from "../ecs2";
+import { deepclone } from "../utils";
 
 // 📑 Store addon
 export const Store = (function () {
@@ -7,37 +8,42 @@ export const Store = (function () {
   let _currentIndex = 0;
   let _autoApply = false;
   const _apply = (world) => {
-    console.log("apply store");
     if (_currentIndex < _states.length - 1) {
       _states.splice(_currentIndex + 1, _states.length);
     }
     if (_states.length > _MAXSTATES) {
       _states.splice(0, 1);
     }
+    _states.push(deepclone(world));
     _currentIndex = _states.length - 1;
-    _states.push(JSON.stringify(world));
   };
   return {
     name: "Store",
-    set MAXSTATES(nbr) {
+    set maxStates(nbr) {
       _MAXSTATES = nbr;
+    },
+    get maxStates() {
+      return _MAXSTATES;
     },
     set autoUpdate(yes) {
       _autoApply = yes;
     },
-    get states() {
+    get autoUpdate() {
+      return _autoApply;
+    },
+    getStates() {
       return _states;
     },
     undo: (world) => {
       if (_currentIndex - 1 < 0) return;
       _currentIndex--;
-      const prevWorld = JSON.parse(_states[_currentIndex]);
+      const prevWorld = _states[_currentIndex];
       recoverWorld(world, prevWorld);
     },
     redo: (world) => {
       if (_currentIndex + 1 > _states.length - 1) return;
       _currentIndex++;
-      const nextWorld = JSON.parse(_states[_currentIndex]);
+      const nextWorld = _states[_currentIndex];
       recoverWorld(world, nextWorld);
     },
     apply: (world) => {

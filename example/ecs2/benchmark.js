@@ -101,7 +101,7 @@ start = performance.now();
 // update 1000 times
 const UPDATES = 1000;
 for (let i = 0; i < UPDATES; i++) {
-  updateWorld(world, i);
+  updateWorld(world, performance.now());
 }
 // console.log(world.entities);
 
