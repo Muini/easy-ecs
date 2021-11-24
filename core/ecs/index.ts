@@ -84,32 +84,35 @@ export function recoverWorld(world: World, newWorld: World) {
 // Components
 // =======================================
 export type ComponentName = string;
-export type ComponentData = {};
-export type Component<T extends ComponentData> = {
+export interface ComponentData {
+  [key: string]: any;
+}
+export type Component<D extends ComponentData> = {
   name: ComponentName;
-  data: T;
+  data: D;
 };
-export function newComponent<T extends ComponentData>(
+
+export function newComponent<D extends ComponentData>(
   name: ComponentName,
-  data?: T
-): Component<T> {
+  data?: D
+): Component<D> {
   return {
     name,
     data,
   };
 }
-export function addComponentToEntity<T>(
-  entity: Entity,
-  component: Component<T>
-): Entity {
+export function addComponentToEntity<
+  C extends Component<any>,
+  newC extends Component<any>
+>(entity: Entity<C>, component: newC): Entity<C | newC> {
   const name = component.name.toLowerCase();
   if (component.data) entity[name] = deepclone(component.data);
   entity.components.push(component.name);
   return entity;
 }
-export function removeComponentFromEntity<T>(
-  entity: Entity,
-  component: Component<T>
+export function removeComponentFromEntity<D>(
+  entity: Entity<any>,
+  component: Component<D>
 ) {
   if (entity.components.indexOf(component.name) === -1) return;
   entity.components.splice(entity.components.indexOf(component.name), 1);
@@ -121,47 +124,51 @@ export function removeComponentFromEntity<T>(
 // =======================================
 // Entities
 // =======================================
-export type EntityTemplate = {
+export type Prefab<C extends Component<any>> = {
   name: string;
-  components: Component<any>[];
-  defaultValues?: ComponentData;
+  components: C[];
+  defaultValues?: Partial<C["data"]>;
 };
 export type EntityId = string;
-export interface Entity {
+
+export interface Entity<C extends Component<any>> {
   name: string;
   id: EntityId;
-  components: ComponentName[];
+  components: C["name"][];
+  // [key: ComponentName]: Partial<C["data"]>;
 }
-export function newEntityTemplate(
+export function newPrefab<C extends Component<any>>(
   name: string,
-  components: Component<any>[],
-  defaultValues?: ComponentData
-): EntityTemplate {
+  components: C[],
+  defaultValues?: Partial<C["data"]>
+): Prefab<C> {
   return { name, components, defaultValues };
 }
-export function newEntity(
-  entityTemplate: EntityTemplate,
-  world: World,
-  defaultValues: ComponentData = {}
-): Entity {
-  const newEntity: Entity = {
-    name: entityTemplate.name,
+export function newEntity<
+  C extends P["components"][number],
+  P extends Prefab<any>
+>(prefab: P, world: World, defaultValues?: P["defaultValues"]): Entity<C> {
+  const newEntity: Entity<C> = {
+    name: prefab.name,
     id: nanoid() as EntityId,
     components: [],
   };
-  for (let c = 0; c < entityTemplate.components.length; c++) {
-    const component = entityTemplate.components[c];
+  for (let c = 0; c < prefab.components.length; c++) {
+    const component = prefab.components[c];
     addComponentToEntity(newEntity, component);
   }
   applyValuesToEntity(newEntity, defaultValues);
   world.entities.push(newEntity);
   return newEntity;
 }
-export type Query = {
-  has?: Component<any>[];
-  not?: Component<any>[];
+export type Query<C extends Component<any>> = {
+  has?: C[];
+  not?: C[];
 };
-export function queryEntities(world: World, query: Query): Entity[] {
+export function queryEntities<C extends Component<any>>(
+  world: World,
+  query: Query<C>
+): Entity<C>[] {
   return query.has.length
     ? world.entities.filter((entity) =>
         query.has.every(
@@ -171,15 +178,15 @@ export function queryEntities(world: World, query: Query): Entity[] {
       )
     : world.entities;
 }
-export function queryEntitiesByName(world: World, name: string): Entity[] {
+export function queryEntitiesByName(world: World, name: string): Entity<any>[] {
   return world.entities.filter((entity) => entity.name === name);
 }
 export function queryEntityById(world: World, id: EntityId) {
   return world.entities.find((entity) => entity.id === id);
 }
-export function applyValuesToEntity(
-  entity: Entity,
-  values: ComponentData = {}
+export function applyValuesToEntity<C extends Component<any>>(
+  entity: Entity<C>,
+  values: Partial<C["data"]>
 ) {
   if (!values || !Object.keys(values) || !Object.keys(values).length) return;
   for (const key in values) {
