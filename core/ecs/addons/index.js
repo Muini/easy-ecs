@@ -9,3 +9,5 @@ export { Store } from "./store";
 // export class Levels extends Addon {}
 // export class Audio extends Addon {}
 // export class Network extends Addon {}
+
+// Note: Addon should be small world composed of components & entities. So we can save & restore addon worlds

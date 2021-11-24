@@ -1,5 +1,5 @@
 // https://github.com/ai/nanoid
-export let nanoid = (t = 21) => {
+export let nanoid = (t = 21): string => {
   let e = "",
     r = crypto.getRandomValues(new Uint8Array(t));
   for (; t--; ) {
@@ -16,7 +16,7 @@ export let nanoid = (t = 21) => {
   return e;
 };
 
-export function deepclone(o) {
+export function deepclone<T>(o: T): T {
   let out, v, key;
   out = Array.isArray(o) ? [] : {};
   for (key in o) {
@@ -26,13 +26,19 @@ export function deepclone(o) {
   return out;
 }
 
-export function Log(type, message, caller) {
-  const log = {
+export type LogType = "success" | "info" | "warn" | "error";
+export type Log = {
+  type: LogType;
+  class: any;
+  message: string;
+};
+export function Log(type: LogType, message: string, caller: any) {
+  const log: Log = {
     type: type,
     class: caller?.name ?? "ECS",
     message: message,
   };
-  function getColor(type) {
+  function getColor(type: LogType) {
     let color = undefined;
     switch (type) {
       case "success":

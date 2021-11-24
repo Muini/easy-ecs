@@ -14,7 +14,7 @@ import {
   SaveSystem,
   // Config,
 } from "../../core/addons2";
-import { Renderer } from "../../core/addons2/WebGLRenderer";
+import { Renderer } from "../../core/addons2/canvasRenderer";
 import {
   INPUT_LEFT,
   INPUT_RIGHT,
