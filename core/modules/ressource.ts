@@ -1,30 +1,30 @@
-import { Entity, newComponent, newSystem, queryEntities, World } from "../ecs";
+import { Entity, newComponent, newSystem, queryEntities } from "../ecs";
 
 export const Ressource = newComponent("ressource", {
   path: "",
   loaded: false,
 });
 
-Ressource.data.loaded;
-
 export const RessourceManager = {
   ressources: [],
-  loadRessource(path: string) {},
+  async load(path: string) {},
 };
 
-function loadEntityRessource(entity: Entity) {
+function loadEntityRessource(entity: Entity<typeof Ressource>) {
   if (entity.ressource.loaded) return;
-  RessourceManager.load(entity.ressource.path);
+  RessourceManager.load(entity.ressource.path).then(() => {
+    entity.ressource.loaded = true;
+  });
 }
 
 export const RessourceLoader = newSystem(
   "ressource-loader",
-  (world: World) => {
+  (world) => {
     const entities = queryEntities(world, { has: [Ressource] });
     // TODO: start loading ressource
     entities.forEach((entity) => {
-      loadEntityRessource(entity);
+      loadEntityRessource(entity as any);
     });
   },
-  (world: World, dt: number) => {}
+  (world, dt: number) => {}
 );

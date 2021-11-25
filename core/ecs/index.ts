@@ -7,7 +7,7 @@ export type World = {
   time: number;
   addons: any;
   systems: System[];
-  entities: Entity[];
+  entities: Entity<any>[];
 };
 export function newWorld(systems: System[] = [], addons = []): World {
   return {
@@ -17,7 +17,7 @@ export function newWorld(systems: System[] = [], addons = []): World {
     entities: [],
   };
 }
-export function removeEntityFromWorld(entity: Entity, world: World) {
+export function removeEntityFromWorld(entity: Entity<any>, world: World) {
   if (world.entities.indexOf(entity) === -1)
     return Log("warn", "Cannot remove entity from world", entity);
   world.entities.splice(world.entities.indexOf(entity), 1);
@@ -83,17 +83,22 @@ export function recoverWorld(world: World, newWorld: World) {
 // =======================================
 // Components
 // =======================================
-export type ComponentName = string;
-export interface ComponentData {
+export type ComponentData = {
   [key: string]: any;
 }
-export type Component<D extends ComponentData> = {
-  name: ComponentName;
+export type Component<D extends ComponentData> {
+  name: string;
   data: D;
+}
+type ComponentProps<C extends Component<any>> = {
+  [P in keyof C["data"]]: C["data"][P];
 };
+type PartialComponentProps<C extends Component<any>> = Partial<
+  ComponentProps<C>
+>;
 
 export function newComponent<D extends ComponentData>(
-  name: ComponentName,
+  name: string,
   data?: D
 ): Component<D> {
   return {
@@ -101,14 +106,18 @@ export function newComponent<D extends ComponentData>(
     data,
   };
 }
+
 export function addComponentToEntity<
   C extends Component<any>,
   newC extends Component<any>
->(entity: Entity<C>, component: newC): Entity<C | newC> {
-  const name = component.name.toLowerCase();
-  if (component.data) entity[name] = deepclone(component.data);
+>(entity: Entity<C>, component: newC) {
+  const name = component.name;
+  const data = component.data as ComponentProps<newC>;
+  if (data) {
+    entity[name] = deepclone(data);
+  }
   entity.components.push(component.name);
-  return entity;
+  return entity as Entity<C & newC>;
 }
 export function removeComponentFromEntity<D>(
   entity: Entity<any>,
@@ -117,7 +126,7 @@ export function removeComponentFromEntity<D>(
   if (entity.components.indexOf(component.name) === -1) return;
   entity.components.splice(entity.components.indexOf(component.name), 1);
   if (!component.data) return;
-  const name = component.name.toLowerCase();
+  const name = component.name;
   delete entity[name];
 }
 
@@ -127,32 +136,42 @@ export function removeComponentFromEntity<D>(
 export type Prefab<C extends Component<any>> = {
   name: string;
   components: C[];
-  defaultValues?: Partial<C["data"]>;
+  defaultValues?: PartialEntityProps<C>;
 };
 export type EntityId = string;
 
-export interface Entity<C extends Component<any>> {
+type EntityProps<C extends Component<any>> = {
+  [key: string]: ComponentProps<C>;
+};
+type PartialEntityProps<C extends Component<any>> = Partial<{
+  [key: string]: PartialComponentProps<C>;
+}>;
+type UpdateType<T> = {
+  [P in keyof T as `set${Capitalize<string & P>}`]: (key: T[P], item: T) => T;
+}
+
+export type Entity<C extends Component<any>> = {
   name: string;
   id: EntityId;
-  components: C["name"][];
-  // [key: ComponentName]: Partial<C["data"]>;
-}
+  components: string[];
+} & EntityProps<C>;
 export function newPrefab<C extends Component<any>>(
   name: string,
   components: C[],
-  defaultValues?: Partial<C["data"]>
+  defaultValues?: PartialEntityProps<C>
 ): Prefab<C> {
   return { name, components, defaultValues };
 }
-export function newEntity<
-  C extends P["components"][number],
-  P extends Prefab<any>
->(prefab: P, world: World, defaultValues?: P["defaultValues"]): Entity<C> {
-  const newEntity: Entity<C> = {
+export function newEntity<C extends Component<any>>(
+  prefab: Prefab<C>,
+  world: World,
+  defaultValues?: PartialEntityProps<C>
+) {
+  let newEntity: Entity<C> = {
     name: prefab.name,
     id: nanoid() as EntityId,
     components: [],
-  };
+  } as Entity<C>;
   for (let c = 0; c < prefab.components.length; c++) {
     const component = prefab.components[c];
     addComponentToEntity(newEntity, component);
@@ -186,11 +205,11 @@ export function queryEntityById(world: World, id: EntityId) {
 }
 export function applyValuesToEntity<C extends Component<any>>(
   entity: Entity<C>,
-  values: Partial<C["data"]>
+  values: PartialEntityProps<C>
 ) {
   if (!values || !Object.keys(values) || !Object.keys(values).length) return;
   for (const key in values) {
-    if (entity[key]) entity[key] = values[key];
+    if (entity[key]) entity[key] = values[key] as ComponentProps<C>;
     else
       Log("warn", `Default values ${key} does not exist on ${entity}`, entity);
   }
