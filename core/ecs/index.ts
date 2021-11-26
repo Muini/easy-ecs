@@ -5,7 +5,7 @@ import { deepclone, nanoid, Log } from "./utils";
 // =======================================
 export type WorldStaticData = {
   [key: string]: any;
-}
+};
 export type World = {
   time: number;
   systems: System[];
@@ -17,7 +17,7 @@ export function newWorld(systems: System[] = []): World {
     time: performance.now(),
     systems,
     entities: [],
-    data: {}
+    data: {},
   };
 }
 export function removeEntityFromWorld(entity: Entity<any>, world: World) {
@@ -57,19 +57,19 @@ export function updateWorld(world: World, time = 0) {
 export function recoverWorld(world: World, newWorld: World) {
   world.entities = newWorld.entities;
   world.time = performance.now();
-  world.data = newWorld.data //TODO: Overwrite only existing data
+  world.data = newWorld.data; //TODO: Overwrite only existing data
 }
 
 // =======================================
 // Components
 // =======================================
-export type ComponentData = {
+export type Data = {
   [key: string]: any;
-}
-export type Component<D extends ComponentData> {
+};
+export type Component<D extends Data> = {
   name: string;
   data: D;
-}
+};
 type ComponentProps<C extends Component<any>> = {
   [P in keyof C["data"]]: C["data"][P];
 };
@@ -77,7 +77,7 @@ type PartialComponentProps<C extends Component<any>> = Partial<
   ComponentProps<C>
 >;
 
-export function newComponent<D extends ComponentData>(
+export function newComponent<D extends Data>(
   name: string,
   data?: D
 ): Component<D> {
@@ -211,7 +211,7 @@ export type SystemProps = {
   beforeUpdate?: SystemUpdate;
   afterUpdate?: SystemUpdate;
   world?: World;
-}
+};
 export function newSystem(props: SystemProps): System {
   const system: System = {
     name: props.name,
