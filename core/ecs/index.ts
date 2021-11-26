@@ -66,8 +66,8 @@ export function recoverWorld(world: World, newWorld: World) {
 export type Data = {
   [key: string]: any;
 };
-export type Component<D extends Data> = {
-  name: string;
+export type Tag = { name: string };
+export type Component<D extends Data> = Tag & {
   data: D;
 };
 type ComponentProps<C extends Component<any>> = {
@@ -77,14 +77,11 @@ type PartialComponentProps<C extends Component<any>> = Partial<
   ComponentProps<C>
 >;
 
-export function newComponent<D extends Data>(
+export function newComponent<D extends Data | undefined>(
   name: string,
   data?: D
-): Component<D> {
-  return {
-    name,
-    data,
-  };
+) {
+  return { name, data } as D extends undefined ? Tag : Component<D>;
 }
 
 export function addComponentToEntity<
@@ -157,22 +154,65 @@ export function newEntity<C extends Component<any>>(
   world.entities.push(newEntity);
   return newEntity;
 }
-export type Query<C extends Component<any>> = {
+export type Query<C extends Component<any>, N extends Component<any>> = {
   has?: C[];
-  not?: C[];
+  not?: N[];
 };
-export function queryEntities<C extends Component<any>>(
-  world: World,
-  query: Query<C>
-): Entity<C>[] {
-  return query.has.length
-    ? world.entities.filter((entity) =>
+enum QueryType {
+  Has,
+  Not,
+  Both,
+  None,
+}
+
+export function queryEntities<
+  C extends Component<any>,
+  N extends Component<any>
+>(world: World, query: Query<C, N>): Entity<C>[] {
+  console.log();
+  const has = !!(query.has && query.has.length);
+  const not = !!(query.not && query.not.length);
+  const queryType: QueryType =
+    has && not
+      ? QueryType.Both
+      : has && !not
+      ? QueryType.Has
+      : not && !has
+      ? QueryType.Not
+      : QueryType.None;
+
+  switch (queryType) {
+    case QueryType.Both:
+      return world.entities.filter(
+        (entity) =>
+          query.has.every(
+            <C>(component: Component<C>) =>
+              entity.components.indexOf(component.name) >= 0
+          ) &&
+          !query.not.every(
+            <N>(component: Component<N>) =>
+              entity.components.indexOf(component.name) >= 0
+          )
+      );
+    case QueryType.Has:
+      return world.entities.filter((entity) =>
         query.has.every(
-          <T>(component: Component<T>) =>
+          <C>(component: Component<C>) =>
             entity.components.indexOf(component.name) >= 0
         )
-      )
-    : world.entities;
+      );
+    case QueryType.Not:
+      return world.entities.filter(
+        (entity) =>
+          !query.not.every(
+            <N>(component: Component<N>) =>
+              entity.components.indexOf(component.name) >= 0
+          )
+      );
+    case QueryType.None:
+    default:
+      return world.entities;
+  }
 }
 export function queryEntitiesByName(world: World, name: string): Entity<any>[] {
   return world.entities.filter((entity) => entity.name === name);
