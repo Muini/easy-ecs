@@ -3,18 +3,21 @@ import { deepclone, nanoid, Log } from "./utils";
 // =======================================
 // World
 // =======================================
+export type WorldStaticData = {
+  [key: string]: any;
+}
 export type World = {
   time: number;
-  addons: any;
   systems: System[];
   entities: Entity<any>[];
+  data: WorldStaticData;
 };
-export function newWorld(systems: System[] = [], addons = []): World {
+export function newWorld(systems: System[] = []): World {
   return {
     time: performance.now(),
-    addons,
     systems,
     entities: [],
+    data: {}
   };
 }
 export function removeEntityFromWorld(entity: Entity<any>, world: World) {
@@ -30,10 +33,6 @@ export function removeSystemFromWorld(system: System, world: World) {
 }
 export function initWorld(world: World) {
   world.time = performance.now();
-  for (let a = 0; a < world.addons.length; a++) {
-    const addon = world.addons[a];
-    if (addon.init) addon.init(world);
-  }
   for (let s = 0; s < world.systems.length; s++) {
     const system = world.systems[s];
     if (system.init) system.init(world);
@@ -42,42 +41,23 @@ export function initWorld(world: World) {
 export function updateWorld(world: World, time = 0) {
   const deltaTime = time - world.time;
   world.time = time;
-  for (let a = 0; a < world.addons.length; a++) {
-    const addon = world.addons[a];
-    if (addon.onBeforeUpdate) addon.onBeforeUpdate(world, deltaTime);
+  for (let s = 0; s < world.systems.length; s++) {
+    const system = world.systems[s];
+    if (system.beforeUpdate) system.beforeUpdate(world, deltaTime);
   }
   for (let s = 0; s < world.systems.length; s++) {
     const system = world.systems[s];
     if (system.update) system.update(world, deltaTime);
   }
-  for (let a = 0; a < world.addons.length; a++) {
-    const addon = world.addons[a];
-    if (addon.onAfterUpdate) addon.onAfterUpdate(world, deltaTime);
+  for (let s = 0; s < world.systems.length; s++) {
+    const system = world.systems[s];
+    if (system.afterUpdate) system.afterUpdate(world, deltaTime);
   }
 }
 export function recoverWorld(world: World, newWorld: World) {
   world.entities = newWorld.entities;
   world.time = performance.now();
-  newWorld.addons.forEach((addon) => {
-    const existingAddon = world.addons.find(
-      (waddon) => waddon.name === addon.name
-    );
-    if (!existingAddon) {
-      world.addons.push(addon);
-    } else {
-      for (const key in addon) {
-        try {
-          existingAddon[key] = addon[key];
-        } catch {
-          return Log(
-            "warn",
-            `Could not recover ${key} from addon ${addon.name}`,
-            newWorld
-          );
-        }
-      }
-    }
-  });
+  world.data = newWorld.data //TODO: Overwrite only existing data
 }
 
 // =======================================
@@ -146,9 +126,6 @@ type EntityProps<C extends Component<any>> = {
 type PartialEntityProps<C extends Component<any>> = Partial<{
   [key: string]: PartialComponentProps<C>;
 }>;
-type UpdateType<T> = {
-  [P in keyof T as `set${Capitalize<string & P>}`]: (key: T[P], item: T) => T;
-}
 
 export type Entity<C extends Component<any>> = {
   name: string;
@@ -218,22 +195,31 @@ export function applyValuesToEntity<C extends Component<any>>(
 // =======================================
 // Systems
 // =======================================
+export type SystemInit = (world: World) => void;
+export type SystemUpdate = (world: World, dt: number) => void;
 export type System = {
   name: string;
-  init: (world: World) => void;
-  update: (world: World, dt: number) => void;
+  init: SystemInit;
+  update: SystemUpdate;
+  beforeUpdate: SystemUpdate;
+  afterUpdate: SystemUpdate;
 };
-export function newSystem(
-  name: string,
-  init: (world: World) => void,
-  update: (world: World, dt: number) => void,
-  world?: World
-): System {
+export type SystemProps = {
+  name: string;
+  init?: SystemInit;
+  update?: SystemUpdate;
+  beforeUpdate?: SystemUpdate;
+  afterUpdate?: SystemUpdate;
+  world?: World;
+}
+export function newSystem(props: SystemProps): System {
   const system: System = {
-    name,
-    init,
-    update,
+    name: props.name,
+    init: props.init,
+    update: props.update,
+    beforeUpdate: props.beforeUpdate,
+    afterUpdate: props.afterUpdate,
   };
-  if (world) addSystemToWorld(system, world);
+  if (props.world) addSystemToWorld(system, props.world);
   return system;
 }

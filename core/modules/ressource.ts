@@ -17,14 +17,14 @@ function loadEntityRessource(entity: Entity<typeof Ressource>) {
   });
 }
 
-export const RessourceLoader = newSystem(
-  "ressource-loader",
-  (world) => {
+export const RessourceLoader = newSystem({
+  name: "ressource-loader",
+  init: (world) => {
     const entities = queryEntities(world, { has: [Ressource] });
     // TODO: start loading ressource
     entities.forEach((entity) => {
       loadEntityRessource(entity as any);
     });
   },
-  (world, dt: number) => {}
-);
+  update: () => {},
+});
