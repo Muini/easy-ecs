@@ -62,8 +62,8 @@ export function Log(type: LogType, message: string, caller: any) {
     "color:white;background:" + getColor(log.type) + ";padding:2px 4px;";
   // Write it in the console
   if (log.type === "error")
-    console.error(logMessage, styles, "color:black", caller);
+    console.error(logMessage, styles, "color:inherit", caller);
   else if (log.type === "warn")
-    console.warn(logMessage, styles, "color:black", caller);
-  else console.info(logMessage, styles, "color:black");
+    console.warn(logMessage, styles, "color:inherit", caller);
+  else console.info(logMessage, styles, "color:inherit");
 }

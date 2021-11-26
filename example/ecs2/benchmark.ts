@@ -9,14 +9,14 @@ import {
   removeEntityFromWorld,
   initWorld,
 } from "../../core/ecs";
-// import { SaveSystem } from "../../core/addons2";
+import { SaveSystem } from "../../core/modules";
 
 let start = performance.now();
 
 // ====================================
 // Components
 // ====================================
-const Position = newComponent("position", [0, 0]);
+const Position = newComponent("position", { x: 0, y: 0 });
 const Health = newComponent("health", { maxHp: 0, hp: 0 });
 const Axe = newComponent("axe", { damage: 1, range: 2 });
 const Sword = newComponent("sword", { damage: 2, range: 4 });
@@ -26,11 +26,14 @@ const Hero = newComponent("hero");
 // Entities
 // ====================================
 const hero = newPrefab("Hero", [Position, Health, Hero, Sword], {
-  position: [0, 0],
+  position: { x: 0, y: 0 },
   health: { hp: 1000, maxHp: 1000 },
 });
 const ennemy = newPrefab("Ennemy", [Position, Health, Ennemy, Axe], {
-  position: [Math.ceil(Math.random() * 1000), Math.ceil(Math.random() * 1000)],
+  position: {
+    x: Math.ceil(Math.random() * 1000),
+    y: Math.ceil(Math.random() * 1000),
+  },
   health: {
     maxHp: 4,
     hp: 4,
@@ -112,7 +115,6 @@ const UPDATES = 1000;
 for (let i = 0; i < UPDATES; i++) {
   updateWorld(world, performance.now());
 }
-// console.log(world.entities);
 
 const updateTime = performance.now() - start;
 console.log(
@@ -132,7 +134,7 @@ console.log(
   initTime + worldSetupTime + worldStartTime + updateTime,
   "ms"
 );
-/*
+
 start = performance.now();
 SaveSystem.saveWorld("test", world);
 const saveTime = performance.now() - start;
@@ -140,4 +142,3 @@ start = performance.now();
 SaveSystem.restoreWorld("test", world);
 const restoreTime = performance.now() - start;
 console.log("save time", saveTime, "ms \nrestore time", restoreTime, "ms");
-*/

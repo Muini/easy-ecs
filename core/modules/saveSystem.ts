@@ -1,4 +1,4 @@
-import { recoverWorld } from "../ecs2";
+import { recoverWorld } from "../ecs";
 
 // 💾 SaveSystem addon
 export const SaveSystem = (function () {

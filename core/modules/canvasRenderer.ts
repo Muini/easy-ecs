@@ -1,5 +1,7 @@
+import { newSystem } from "../ecs";
+
 //🖼️ Renderer addon
-export const Renderer = (function () {
+export const CanvasRenderer = (function () {
   let _canvas = null;
   let _ctx = null;
   let _width = 0;
@@ -34,8 +36,11 @@ export const Renderer = (function () {
         _onResize();
       });
     },
-    onBeforeUpdate: (world) => {
-      _ctx.clearRect(0, 0, _canvas.width, _canvas.height);
-    },
+    system: newSystem({
+      name: "canvas-renderer",
+      beforeUpdate: (world) => {
+        _ctx.clearRect(0, 0, _canvas.width, _canvas.height);
+      },
+    }),
   };
 })();

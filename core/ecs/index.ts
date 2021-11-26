@@ -153,7 +153,7 @@ export function newEntity<C extends Component<any>>(
     const component = prefab.components[c];
     addComponentToEntity(newEntity, component);
   }
-  applyValuesToEntity(newEntity, defaultValues);
+  applyValuesToEntity(newEntity, defaultValues ?? prefab.defaultValues);
   world.entities.push(newEntity);
   return newEntity;
 }
@@ -185,10 +185,19 @@ export function applyValuesToEntity<C extends Component<any>>(
   values: PartialEntityProps<C>
 ) {
   if (!values || !Object.keys(values) || !Object.keys(values).length) return;
-  for (const key in values) {
-    if (entity[key]) entity[key] = values[key] as ComponentProps<C>;
-    else
-      Log("warn", `Default values ${key} does not exist on ${entity}`, entity);
+  for (const comp in values) {
+    if (entity[comp]) {
+      const compValues = values[comp] as ComponentProps<C>;
+      for (const key in compValues) {
+        entity[comp][key] = compValues[key];
+      }
+    } else {
+      Log(
+        "warn",
+        `Default values component ${comp} does not exist on ${entity.name}`,
+        entity
+      );
+    }
   }
 }
 
