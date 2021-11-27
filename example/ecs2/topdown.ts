@@ -1,5 +1,6 @@
 import {
   newWorld,
+  newTag,
   newComponent,
   newPrefab,
   newEntity,
@@ -38,7 +39,7 @@ Renderer.setup(document.getElementById("game"), 512, 512);
 // ====================================
 const Position = newComponent("position", { x: 0, y: 0 });
 const Movement = newComponent("movement", { speed: 0 });
-const Controllable = newComponent("controllable");
+const Controllable = newTag("controllable");
 const Sprite = newComponent("sprite", {
   width: 16,
   height: 32,
@@ -47,14 +48,23 @@ const Sprite = newComponent("sprite", {
 // ====================================
 // Entities
 // ====================================
-const Character = newPrefab("Character", [Position, Movement, Sprite], {
-  position: { x: 0, y: 0 },
-  movement: { speed: 10 },
-});
-const Hero = newPrefab("Hero", [Position, Movement, Sprite, Controllable], {
-  position: { x: 256, y: 256 },
-  movement: { speed: 10 },
-});
+const Character = newPrefab(
+  "Character",
+  [Position, Movement, Sprite] as const,
+  {
+    position: { x: 0, y: 0 },
+    movement: { speed: 10 },
+  }
+);
+const Hero = newPrefab(
+  "Hero",
+  [Position, Movement, Sprite, Controllable] as const,
+  {
+    position: { x: 256, y: 256 },
+    movement: { speed: 10 },
+  }
+);
+Character.components[1].data.speed;
 
 // ====================================
 // Systems
@@ -62,7 +72,7 @@ const Hero = newPrefab("Hero", [Position, Movement, Sprite, Controllable], {
 const SpriteRenderer = newSystem({
   name: "SpriteRenderer",
   update: (world, dt) => {
-    const entities = queryEntities(world, { has: [Position, Sprite] });
+    const entities = queryEntities(world, { has: [Position, Sprite] as const });
     for (let i = 0; i < entities.length; i++) {
       const entity = entities[i];
       Renderer.ctx.translate(
@@ -96,7 +106,7 @@ const MovementControl = newSystem({
   name: "MovementControl",
   update: (world, dt) => {
     const entities = queryEntities(world, {
-      has: [Position, Movement, Controllable],
+      has: [Position, Movement, Controllable] as const,
     });
     for (let i = 0; i < entities.length; i++) {
       const entity = entities[i];
@@ -134,8 +144,8 @@ const world = newWorld([
   SpriteRenderer,
 ]);
 
-newEntity(Hero, world);
-newEntity(Character, world, {
+const hero = newEntity(Hero, world);
+const character = newEntity(Character, world, {
   position: {
     x: Math.ceil(Math.random() * 512),
     y: Math.ceil(Math.random() * 512),

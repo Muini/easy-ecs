@@ -7,9 +7,12 @@ export const Children = newComponent("children", {
   ids: [] as EntityId[],
 });
 
-export function setParent(entity: Entity<typeof Parent>, parent: Entity<any>) {
+export function setParent(
+  entity: Entity<[typeof Parent]>,
+  parent: Entity<any>
+) {
   entity.parent.id = parent.id;
 }
-export function clearParent(entity: Entity<typeof Parent>) {
+export function clearParent(entity: Entity<[typeof Parent]>) {
   entity.parent.id = null;
 }
