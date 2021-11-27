@@ -20,8 +20,8 @@ const Position = newComponent("position", { x: 0, y: 0 });
 const Health = newComponent("health", { maxHp: 0, hp: 0 });
 const Axe = newComponent("axe", { damage: 1, range: 2 });
 const Sword = newComponent("sword", { damage: 2, range: 4 });
-const Ennemy = newComponent("ennemy");
-const Hero = newComponent("hero");
+const Ennemy = newComponent("ennemy", { isTag: true });
+const Hero = newComponent("hero", { isTag: true });
 // ====================================
 // Entities
 // ====================================
@@ -142,3 +142,31 @@ start = performance.now();
 SaveSystem.restoreWorld("test", world);
 const restoreTime = performance.now() - start;
 console.log("save time", saveTime, "ms \nrestore time", restoreTime, "ms");
+
+/*
+const Position = newComponent("position", { x: 0, y: 0 });
+const Another = newComponent("another", { prout: 0 });
+const Shared = newComponent("shared", { something: "lol" });
+
+const Hero = newPrefab("Hero", [Position, Shared], {
+  position: { x: 0, y: 0 },
+});
+const Ennemy = newPrefab("Ennemy", [Another, Shared]);
+
+const System = newSystem({
+  name: "test",
+  update: (world, dt) => {
+    const entities = queryEntities(world, { has: [Shared], not: [Position] });
+    entities.forEach((entity) => (entity.shared.something = "lolilol"));
+    console.log("query result", entities);
+  },
+});
+
+const world = newWorld([System]);
+newEntity(Hero, world);
+newEntity(Ennemy, world);
+
+updateWorld(world, performance.now());
+
+console.log(world);
+*/

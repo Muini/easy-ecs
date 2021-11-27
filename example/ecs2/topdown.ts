@@ -1,10 +1,8 @@
 import {
   newWorld,
-  newTag,
   newComponent,
   newPrefab,
   newEntity,
-  updateWorld,
   queryEntities,
   newSystem,
   initWorld,
@@ -39,7 +37,7 @@ Renderer.setup(document.getElementById("game"), 512, 512);
 // ====================================
 const Position = newComponent("position", { x: 0, y: 0 });
 const Movement = newComponent("movement", { speed: 0 });
-const Controllable = newTag("controllable");
+const Controllable = newComponent("controllable", { isTag: true });
 const Sprite = newComponent("sprite", {
   width: 16,
   height: 32,

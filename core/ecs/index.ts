@@ -66,15 +66,12 @@ export function recoverWorld(world: World, newWorld: World) {
 export interface Data {
   [key: string]: any;
 }
-export type PartialData<D> = Partial<D>;
 
-export interface Component<D> {
+export interface Component<D extends Data> {
   name: string;
   data: D;
 }
-
 export type ComponentList<D> = readonly Component<D>[];
-export type ComponentNames<D> = Component<D>["name"][];
 export type ComponentProps<D extends Data> = {
   [N in keyof D]: D[N];
 };
@@ -82,71 +79,76 @@ export type PartialComponentProps<D extends Partial<Data>> = Partial<{
   [N in keyof D]: D[N];
 }>;
 
-export function newComponent<D>(name: string, data: D) {
+export function newComponent<D>(name: string, data: D): Component<D> {
+  if (name === "name" || name === "id") {
+    Log(
+      "error",
+      "'name' & 'id' are reserved name, you cannot use them as component names",
+      name
+    );
+    return;
+  }
   return { name, data } as Component<D>;
 }
-
+export function entityHasComponent(
+  entity: Entity<any>,
+  component: Component<any>
+): boolean {
+  return entity[component.name] !== undefined;
+}
 export function addComponentToEntity<List extends ComponentList<any>, N>(
   entity: Entity<List>,
   component: Component<N>
 ) {
-  const name = component.name;
-  const data = component.data;
-  if (data) {
-    entity[name] = deepclone(data);
-  }
-  entity.components.push(component.name);
-  return entity as Entity<List & N>;
+  entity[component.name] = deepclone(component.data) ?? null;
+  return entity as Entity<List>;
 }
 export function removeComponentFromEntity<List extends ComponentList<any>, R>(
   entity: Entity<List>,
   component: Component<R>
 ) {
-  if (entity.components.indexOf(component.name) === -1) return;
-  entity.components.splice(entity.components.indexOf(component.name), 1);
-  if (!component.data) return;
-  const name = component.name;
-  delete entity[name];
+  if (entityHasComponent(entity, component)) return;
+  entity[component.name] = null;
+  delete entity[component.name];
 }
 
 // =======================================
 // Entities
 // =======================================
+interface EntityComponents<List extends ComponentList<any>> {
+  [name: string]: ComponentProps<List[number]["data"]>;
+}
+interface PartialEntityComponents<List extends Partial<ComponentList<any>>> {
+  [name: string]: PartialComponentProps<List[number]["data"]>;
+}
+
 export type Prefab<List extends ComponentList<any>> = {
   name: string;
   components: List;
-  defaultValues?: PartialEntityProps<List>;
+  defaultValues?: PartialEntityComponents<List>;
 };
-export type EntityId = string;
-
-interface EntityProps<List extends ComponentList<any>> {
-  [key: string]: ComponentProps<List[number]["data"]>;
-}
-interface PartialEntityProps<List extends Partial<ComponentList<any>>> {
-  [key: string]: PartialComponentProps<List[number]["data"]>;
-}
-
-export type Entity<List extends ComponentList<any>> = {
-  name: string;
-  id: EntityId;
-  components: ComponentNames<any>;
-} & EntityProps<List>;
 export function newPrefab<List extends ComponentList<any>>(
   name: string,
   components: List,
-  defaultValues?: PartialEntityProps<List>
+  defaultValues?: PartialEntityComponents<List>
 ): Prefab<List> {
   return { name, components, defaultValues };
 }
+
+export type EntityId = string;
+export type Entity<List extends ComponentList<any>> = {
+  name: string;
+  id: EntityId;
+} & EntityComponents<List>;
+
 export function newEntity<List extends ComponentList<any>>(
   prefab: Prefab<List>,
   world: World,
-  defaultValues?: PartialEntityProps<List>
+  defaultValues?: PartialEntityComponents<List>
 ) {
   let newEntity: Entity<List> = {
     name: prefab.name,
     id: nanoid() as EntityId,
-    components: [],
   } as Entity<List>;
   for (let c = 0; c < prefab.components.length; c++) {
     const component = prefab.components[c];
@@ -166,9 +168,9 @@ export type Query<
 export function queryEntities<
   H extends ComponentList<any>,
   N extends ComponentList<any>
->(world: World, query: Query<H, N>): Entity<H>[] {
-  const has = !!(query.has && query.has.length);
-  const not = !!(query.not && query.not.length);
+>(world: World, query?: Query<H, N>): Entity<H>[] {
+  const has = !!(query && query.has && query.has.length);
+  const not = !!(query && query.not && query.not.length);
 
   enum QueryType {
     Has,
@@ -189,29 +191,24 @@ export function queryEntities<
     case QueryType.Both:
       return world.entities.filter(
         (entity) =>
-          query.has.every(
-            (component: Component<H>) =>
-              entity.components.indexOf(component.name) >= 0
+          query.has.every((component: Component<H>) =>
+            entityHasComponent(entity, component)
           ) &&
-          !query.not.every(
-            (component: Component<N>) =>
-              entity.components.indexOf(component.name) >= 0
+          query.not.every(
+            (component: Component<N>) => !entityHasComponent(entity, component)
           )
       );
     case QueryType.Has:
       return world.entities.filter((entity) =>
-        query.has.every(
-          (component: Component<H>) =>
-            entity.components.indexOf(component.name) >= 0
+        query.has.every((component: Component<H>) =>
+          entityHasComponent(entity, component)
         )
       );
     case QueryType.Not:
-      return world.entities.filter(
-        (entity) =>
-          !query.not.every(
-            (component: Component<N>) =>
-              entity.components.indexOf(component.name) >= 0
-          )
+      return world.entities.filter((entity) =>
+        query.not.every(
+          (component: Component<N>) => !entityHasComponent(entity, component)
+        )
       );
     case QueryType.None:
     default:
@@ -226,7 +223,7 @@ export function queryEntityById(world: World, id: EntityId) {
 }
 export function applyValuesToEntity<List extends ComponentList<any>>(
   entity: Entity<List>,
-  values: PartialEntityProps<List>
+  values: PartialEntityComponents<List>
 ) {
   if (!values || !Object.keys(values) || !Object.keys(values).length) return;
   for (const comp in values) {
