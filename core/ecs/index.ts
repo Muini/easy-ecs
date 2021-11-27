@@ -63,23 +63,19 @@ export function recoverWorld(world: World, newWorld: World) {
 // =======================================
 // Components
 // =======================================
-export interface Data {
-  [key: string]: any;
-}
-
-export interface Component<D extends Data> {
+export interface Component<D> {
   name: string;
-  data: D;
+  data?: D;
 }
-export type ComponentList<D> = readonly Component<D>[];
-export type ComponentProps<D extends Data> = {
+export type ComponentList<D> = Component<D>[];
+export type ComponentProps<D> = {
   [N in keyof D]: D[N];
 };
-export type PartialComponentProps<D extends Partial<Data>> = Partial<{
+export type PartialComponentProps<D> = Partial<{
   [N in keyof D]: D[N];
 }>;
 
-export function newComponent<D>(name: string, data: D): Component<D> {
+export function newComponent<D>(name: string, data?: D): Component<D> {
   if (name === "name" || name === "id") {
     Log(
       "error",
@@ -88,7 +84,7 @@ export function newComponent<D>(name: string, data: D): Component<D> {
     );
     return;
   }
-  return { name, data } as Component<D>;
+  return { name, data };
 }
 export function entityHasComponent(
   entity: Entity<any>,
@@ -115,22 +111,22 @@ export function removeComponentFromEntity<List extends ComponentList<any>, R>(
 // =======================================
 // Entities
 // =======================================
-interface EntityComponents<List extends ComponentList<any>> {
-  [name: string]: ComponentProps<List[number]["data"]>;
+interface EntityComponent<C extends Component<any>> {
+  [name: string]: ComponentProps<C["data"]>;
 }
-interface PartialEntityComponents<List extends Partial<ComponentList<any>>> {
-  [name: string]: PartialComponentProps<List[number]["data"]>;
+interface PartialEntityComponents<List extends Partial<Component<any>>> {
+  [name: string]: PartialComponentProps<List["data"]>;
 }
 
 export type Prefab<List extends ComponentList<any>> = {
   name: string;
   components: List;
-  defaultValues?: PartialEntityComponents<List>;
+  defaultValues?: PartialEntityComponents<List[number]>;
 };
 export function newPrefab<List extends ComponentList<any>>(
   name: string,
   components: List,
-  defaultValues?: PartialEntityComponents<List>
+  defaultValues?: PartialEntityComponents<List[number]>
 ): Prefab<List> {
   return { name, components, defaultValues };
 }
@@ -139,12 +135,12 @@ export type EntityId = string;
 export type Entity<List extends ComponentList<any>> = {
   name: string;
   id: EntityId;
-} & EntityComponents<List>;
+} & EntityComponent<List[number]>;
 
 export function newEntity<List extends ComponentList<any>>(
   prefab: Prefab<List>,
   world: World,
-  defaultValues?: PartialEntityComponents<List>
+  defaultValues?: PartialEntityComponents<List[number]>
 ) {
   let newEntity: Entity<List> = {
     name: prefab.name,
@@ -223,7 +219,7 @@ export function queryEntityById(world: World, id: EntityId) {
 }
 export function applyValuesToEntity<List extends ComponentList<any>>(
   entity: Entity<List>,
-  values: PartialEntityComponents<List>
+  values: PartialEntityComponents<List[number]>
 ) {
   if (!values || !Object.keys(values) || !Object.keys(values).length) return;
   for (const comp in values) {

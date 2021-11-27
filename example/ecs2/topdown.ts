@@ -37,7 +37,7 @@ Renderer.setup(document.getElementById("game"), 512, 512);
 // ====================================
 const Position = newComponent("position", { x: 0, y: 0 });
 const Movement = newComponent("movement", { speed: 0 });
-const Controllable = newComponent("controllable", { isTag: true });
+const Controllable = newComponent("controllable", true);
 const Sprite = newComponent("sprite", {
   width: 16,
   height: 32,
@@ -46,31 +46,21 @@ const Sprite = newComponent("sprite", {
 // ====================================
 // Entities
 // ====================================
-const Character = newPrefab(
-  "Character",
-  [Position, Movement, Sprite] as const,
-  {
-    position: { x: 0, y: 0 },
-    movement: { speed: 10 },
-  }
-);
-const Hero = newPrefab(
-  "Hero",
-  [Position, Movement, Sprite, Controllable] as const,
-  {
-    position: { x: 256, y: 256 },
-    movement: { speed: 10 },
-  }
-);
-Character.components[1].data.speed;
-
+const Character = newPrefab("Character", [Position, Movement, Sprite], {
+  position: { x: 0, y: 0 },
+  movement: { speed: 10 },
+});
+const Hero = newPrefab("Hero", [Position, Movement, Sprite, Controllable], {
+  position: { x: 256, y: 256 },
+  movement: { speed: 10 },
+});
 // ====================================
 // Systems
 // ====================================
 const SpriteRenderer = newSystem({
   name: "SpriteRenderer",
   update: (world, dt) => {
-    const entities = queryEntities(world, { has: [Position, Sprite] as const });
+    const entities = queryEntities(world, { has: [Position, Sprite] });
     for (let i = 0; i < entities.length; i++) {
       const entity = entities[i];
       Renderer.ctx.translate(
@@ -104,7 +94,7 @@ const MovementControl = newSystem({
   name: "MovementControl",
   update: (world, dt) => {
     const entities = queryEntities(world, {
-      has: [Position, Movement, Controllable] as const,
+      has: [Position, Movement, Controllable],
     });
     for (let i = 0; i < entities.length; i++) {
       const entity = entities[i];
