@@ -63,108 +63,86 @@ export function recoverWorld(world: World, newWorld: World) {
 // =======================================
 // Components
 // =======================================
-export interface Component<D> {
-  name: string;
-  data?: D;
-}
-export type ComponentList<D> = Component<D>[];
-export type ComponentProps<D> = {
-  [N in keyof D]: D[N];
-};
-export type PartialComponentProps<D> = Partial<{
-  [N in keyof D]: D[N];
-}>;
+type Component<N extends string, D> = Record<N, D>;
 
-export function newComponent<D>(name: string, data?: D): Component<D> {
-  if (name === "name" || name === "id") {
-    Log(
-      "error",
-      "'name' & 'id' are reserved name, you cannot use them as component names",
-      name
-    );
-    return;
-  }
-  return { name, data };
+export function newComponent<N extends string, D>(name: N, data: D) {
+  return { [name]: data } as Component<N, D>;
 }
 export function entityHasComponent(
   entity: Entity<any>,
-  component: Component<any>
+  component: Component<any, any>
 ): boolean {
   return entity[component.name] !== undefined;
 }
-export function addComponentToEntity<List extends ComponentList<any>, N>(
-  entity: Entity<List>,
-  component: Component<N>
-) {
-  entity[component.name] = deepclone(component.data) ?? null;
-  return entity as Entity<List>;
+export function addComponentToEntity<
+  C extends Component<any, any>,
+  N extends Component<any, any>
+>(entity: Entity<C>, component: N) {
+  const obj = Object.assign(entity, deepclone(component));
+  return entity as Entity<typeof obj>;
 }
-export function removeComponentFromEntity<List extends ComponentList<any>, R>(
-  entity: Entity<List>,
-  component: Component<R>
-) {
-  if (entityHasComponent(entity, component)) return;
-  entity[component.name] = null;
-  delete entity[component.name];
+export function removeComponentFromEntity<
+  C extends Component<any, any>,
+  R extends Component<any, any>
+>(entity: Entity<C>, component: R) {
+  if (!entityHasComponent(entity, component)) return;
+  // delete entity[component.name];
 }
 
 // =======================================
 // Entities
 // =======================================
-interface EntityComponent<C extends Component<any>> {
-  [name: string]: ComponentProps<C["data"]>;
-}
-interface PartialEntityComponents<List extends Partial<Component<any>>> {
-  [name: string]: PartialComponentProps<List["data"]>;
-}
 
-export type Prefab<List extends ComponentList<any>> = {
-  name: string;
-  components: List;
-  defaultValues?: PartialEntityComponents<List[number]>;
+export type Prefab<C extends Component<any, any>> = {
+  readonly name: string;
+  readonly components: C[];
+  readonly defaultValues?: Partial<C>;
 };
-export function newPrefab<List extends ComponentList<any>>(
+export function newPrefab<C extends Component<any, any>>(
   name: string,
-  components: List,
-  defaultValues?: PartialEntityComponents<List[number]>
-): Prefab<List> {
+  components: C[],
+  defaultValues?: Partial<C>
+): Prefab<C> {
   return { name, components, defaultValues };
 }
 
 export type EntityId = string;
-export type Entity<List extends ComponentList<any>> = {
-  name: string;
-  id: EntityId;
-} & EntityComponent<List[number]>;
+export type Entity<C extends Component<any, any>> = {
+  readonly name: string;
+  readonly id: EntityId;
+} & C;
 
-export function newEntity<List extends ComponentList<any>>(
-  prefab: Prefab<List>,
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+  k: infer I
+) => void
+  ? I
+  : never;
+export function newEntity<C extends Component<any, any>>(
+  prefab: Prefab<C>,
   world: World,
-  defaultValues?: PartialEntityComponents<List[number]>
+  defaultValues?: Partial<C>
 ) {
-  let newEntity: Entity<List> = {
-    name: prefab.name,
-    id: nanoid() as EntityId,
-  } as Entity<List>;
-  for (let c = 0; c < prefab.components.length; c++) {
-    const component = prefab.components[c];
-    newEntity = addComponentToEntity(newEntity, component);
+  let components = {} as UnionToIntersection<C>;
+  for (const key in prefab.components) {
+    Object.assign(components, deepclone(prefab.components[key]));
   }
+  const obj = Object.assign({ name: prefab.name, id: nanoid() }, components);
+  const newEntity = obj as Entity<typeof obj>;
   applyValuesToEntity(newEntity, defaultValues ?? prefab.defaultValues);
   world.entities.push(newEntity);
   return newEntity;
 }
 export type Query<
-  H extends ComponentList<any>,
-  N extends ComponentList<any>
+  H extends Component<any, any>[],
+  N extends Component<any, any>[]
 > = {
   has?: H;
   not?: N;
 };
 export function queryEntities<
-  H extends ComponentList<any>,
-  N extends ComponentList<any>
->(world: World, query?: Query<H, N>): Entity<H>[] {
+  H extends Component<any, any>[],
+  N extends Component<any, any>[]
+>(world: World, query?: Query<H, N>): Entity<UnionToIntersection<H[number]>>[] {
   const has = !!(query && query.has && query.has.length);
   const not = !!(query && query.not && query.not.length);
 
@@ -187,24 +165,18 @@ export function queryEntities<
     case QueryType.Both:
       return world.entities.filter(
         (entity) =>
-          query.has.every((component: Component<H>) =>
+          query.has.every((component) =>
             entityHasComponent(entity, component)
           ) &&
-          query.not.every(
-            (component: Component<N>) => !entityHasComponent(entity, component)
-          )
+          query.not.every((component) => !entityHasComponent(entity, component))
       );
     case QueryType.Has:
       return world.entities.filter((entity) =>
-        query.has.every((component: Component<H>) =>
-          entityHasComponent(entity, component)
-        )
+        query.has.every((component) => entityHasComponent(entity, component))
       );
     case QueryType.Not:
       return world.entities.filter((entity) =>
-        query.not.every(
-          (component: Component<N>) => !entityHasComponent(entity, component)
-        )
+        query.not.every((component) => !entityHasComponent(entity, component))
       );
     case QueryType.None:
     default:
@@ -217,21 +189,18 @@ export function queryEntitiesByName(world: World, name: string): Entity<any>[] {
 export function queryEntityById(world: World, id: EntityId) {
   return world.entities.find((entity) => entity.id === id);
 }
-export function applyValuesToEntity<List extends ComponentList<any>>(
-  entity: Entity<List>,
-  values: PartialEntityComponents<List[number]>
+export function applyValuesToEntity<C extends Component<any, any>>(
+  entity: Entity<C>,
+  values: Partial<C>
 ) {
   if (!values || !Object.keys(values) || !Object.keys(values).length) return;
-  for (const comp in values) {
-    if (entity[comp]) {
-      const compValues = values[comp];
-      for (const key in compValues) {
-        entity[comp][key] = compValues[key];
-      }
+  for (const compName in values) {
+    if (entity[compName]) {
+      Object.assign(entity, { [compName]: values[compName] });
     } else {
       Log(
         "warn",
-        `Default values component ${comp} does not exist on ${entity.name}`,
+        `Default values component ${compName} does not exist on ${entity.name}`,
         entity
       );
     }
