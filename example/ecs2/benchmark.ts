@@ -32,10 +32,6 @@ const hero = newPrefab("Hero", [Position, Health, Hero, Sword], {
   health: { hp: 1000, maxHp: 1000 },
 });
 const ennemy = newPrefab("Ennemy", [Position, Health, Ennemy, Axe], {
-  position: {
-    x: Math.ceil(Math.random() * 1000),
-    y: Math.ceil(Math.random() * 1000),
-  },
   health: {
     maxHp: 4,
     hp: 4,
@@ -98,7 +94,12 @@ for (let i = 0; i < 10000; i++) {
 }
 // Ennemies
 for (let i = 0; i < 10000; i++) {
-  newEntity(ennemy, world);
+  newEntity(ennemy, world, {
+    position: {
+      x: Math.ceil(Math.random() * 1000),
+      y: Math.ceil(Math.random() * 1000),
+    },
+  });
 }
 // console.log(world.entities[0].maxHp);
 const worldSetupTime = performance.now() - start;
@@ -117,7 +118,7 @@ const UPDATES = 1000;
 for (let i = 0; i < UPDATES; i++) {
   updateWorld(world, performance.now());
 }
-console.log(world);
+// console.log(world);
 
 const updateTime = performance.now() - start;
 console.log(

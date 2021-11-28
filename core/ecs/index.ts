@@ -72,8 +72,7 @@ export function entityHasComponent(
   entity: Entity<unknown>,
   component: Component<any, any>
 ): boolean {
-  const componentName = Object.keys(component)[0];
-  return entity[componentName] !== undefined;
+  for (const cname in component) return entity[cname] !== undefined;
 }
 export function addComponentToEntity<
   C extends Component<any, any>,
@@ -87,8 +86,7 @@ export function removeComponentFromEntity<
   R extends Component<any, any>
 >(entity: Entity<C>, component: R) {
   if (!entityHasComponent(entity, component)) return;
-  const componentName = Object.keys(component)[0];
-  delete entity[componentName];
+  for (const cname in component) delete entity[cname];
 }
 
 // =======================================
@@ -202,7 +200,6 @@ export function applyValuesToEntity<C extends Component<any, any>>(
   entity: Entity<C>,
   values: Partial<C>
 ) {
-  if (!values || !Object.keys(values) || !Object.keys(values).length) return;
   for (const compName in values) {
     if (entity[compName]) {
       Object.assign(entity, { [compName]: deepclone(values[compName]) });
