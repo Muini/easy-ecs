@@ -8,11 +8,11 @@ export const Children = newComponent("children", {
 });
 
 export function setParent(
-  entity: Entity<[typeof Parent]>,
-  parent: Entity<any>
+  entity: Entity<typeof Parent>,
+  parent: Entity<unknown>
 ) {
   entity.parent.id = parent.id;
 }
-export function clearParent(entity: Entity<[typeof Parent]>) {
+export function clearParent(entity: Entity<typeof Parent>) {
   entity.parent.id = null;
 }

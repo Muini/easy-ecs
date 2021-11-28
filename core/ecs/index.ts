@@ -69,10 +69,11 @@ export function newComponent<N extends string, D>(name: N, data: D) {
   return { [name]: data } as Component<N, D>;
 }
 export function entityHasComponent(
-  entity: Entity<any>,
+  entity: Entity<unknown>,
   component: Component<any, any>
 ): boolean {
-  return entity[component.name] !== undefined;
+  const componentName = Object.keys(component)[0];
+  return entity[componentName] !== undefined;
 }
 export function addComponentToEntity<
   C extends Component<any, any>,
@@ -86,7 +87,8 @@ export function removeComponentFromEntity<
   R extends Component<any, any>
 >(entity: Entity<C>, component: R) {
   if (!entityHasComponent(entity, component)) return;
-  // delete entity[component.name];
+  const componentName = Object.keys(component)[0];
+  delete entity[componentName];
 }
 
 // =======================================
@@ -128,7 +130,10 @@ export function newEntity<C extends Component<any, any>>(
   }
   const obj = Object.assign({ name: prefab.name, id: nanoid() }, components);
   const newEntity = obj as Entity<typeof obj>;
-  applyValuesToEntity(newEntity, defaultValues ?? prefab.defaultValues);
+  applyValuesToEntity(
+    newEntity,
+    (defaultValues as any) ?? prefab.defaultValues
+  );
   world.entities.push(newEntity);
   return newEntity;
 }
@@ -183,11 +188,15 @@ export function queryEntities<
       return world.entities;
   }
 }
-export function queryEntitiesByName(world: World, name: string): Entity<any>[] {
+export function queryEntitiesByName(
+  world: World,
+  name: string
+): Entity<unknown>[] {
   return world.entities.filter((entity) => entity.name === name);
 }
 export function queryEntityById(world: World, id: EntityId) {
-  return world.entities.find((entity) => entity.id === id);
+  const entity = world.entities.find((entity) => entity.id === id);
+  return entity as Entity<typeof entity>;
 }
 export function applyValuesToEntity<C extends Component<any, any>>(
   entity: Entity<C>,
@@ -196,7 +205,7 @@ export function applyValuesToEntity<C extends Component<any, any>>(
   if (!values || !Object.keys(values) || !Object.keys(values).length) return;
   for (const compName in values) {
     if (entity[compName]) {
-      Object.assign(entity, { [compName]: values[compName] });
+      Object.assign(entity, { [compName]: deepclone(values[compName]) });
     } else {
       Log(
         "warn",

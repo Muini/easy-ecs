@@ -1,11 +1,11 @@
-import { updateWorld, newSystem } from "../ecs";
+import { updateWorld, newSystem, World } from "../ecs";
 
 // 🔁 Loop addon
 export const Loop = (function () {
   let _raf = null;
   let _fps = null;
   let _prevTime = performance.now();
-  const _loop = (world) => {
+  const _loop = (world: World) => {
     _raf = requestAnimationFrame((time) => {
       if (_fps) {
         const now = performance.now();
@@ -36,10 +36,10 @@ export const Loop = (function () {
     },
     system: newSystem({
       name: "loop",
-      init: (world) => {
+      init: (world: World) => {
         _loop(world);
       },
-      beforeUpdate: (world, dt) => {
+      beforeUpdate: (world: World, dt: number) => {
         _loop(world);
       },
     }),

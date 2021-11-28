@@ -8,6 +8,8 @@ import {
   newSystem,
   removeEntityFromWorld,
   initWorld,
+  addComponentToEntity,
+  removeComponentFromEntity,
 } from "../../core/ecs";
 import { SaveSystem } from "../../core/modules";
 
@@ -20,8 +22,8 @@ const Position = newComponent("position", { x: 0, y: 0 });
 const Health = newComponent("health", { maxHp: 0, hp: 0 });
 const Axe = newComponent("axe", { damage: 1, range: 2 });
 const Sword = newComponent("sword", { damage: 2, range: 4 });
-const Ennemy = newComponent("ennemy", { isTag: true });
-const Hero = newComponent("hero", { isTag: true });
+const Ennemy = newComponent("ennemy", true);
+const Hero = newComponent("hero", true);
 // ====================================
 // Entities
 // ====================================
@@ -115,6 +117,7 @@ const UPDATES = 1000;
 for (let i = 0; i < UPDATES; i++) {
   updateWorld(world, performance.now());
 }
+console.log(world);
 
 const updateTime = performance.now() - start;
 console.log(
@@ -144,29 +147,35 @@ const restoreTime = performance.now() - start;
 console.log("save time", saveTime, "ms \nrestore time", restoreTime, "ms");
 
 /*
+//Test suite
 const Position = newComponent("position", { x: 0, y: 0 });
-const Another = newComponent("another", { prout: 0 });
-const Shared = newComponent("shared", { something: "lol" });
+const Axe = newComponent("axe", { damage: 0 });
+const Health = newComponent("health", 100);
+const PowerUp = newComponent("power", true);
 
-const Hero = newPrefab("Hero", [Position, Shared], {
-  position: { x: 0, y: 0 },
+const Hero = newPrefab("Hero", [Position, Health], {
+  position: { x: 5, y: 5 },
 });
-const Ennemy = newPrefab("Ennemy", [Another, Shared]);
+const Ennemy = newPrefab("Ennemy", [Position, Axe, Health]);
 
 const System = newSystem({
   name: "test",
   update: (world, dt) => {
-    const entities = queryEntities(world, { has: [Shared], not: [Position] });
-    entities.forEach((entity) => (entity.shared.something = "lolilol"));
+    const entities = queryEntities(world, { has: [Position], not: [Axe] });
+    entities.forEach((entity) => (entity.position.x += 1));
     console.log("query result", entities);
   },
 });
 
 const world = newWorld([System]);
-newEntity(Hero, world);
-newEntity(Ennemy, world);
+const hero = newEntity(Hero, world);
+const ennemy = newEntity(Ennemy, world, { position: { x: -1, y: 3 } });
+
+addComponentToEntity(hero, PowerUp);
 
 updateWorld(world, performance.now());
+
+removeComponentFromEntity(ennemy, Axe);
 
 console.log(world);
 */
