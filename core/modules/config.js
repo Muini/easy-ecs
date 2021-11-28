@@ -1,4 +1,4 @@
-import { Log } from "../utils";
+import { Log } from "../ecs/utils";
 
 // 📜 Config addon
 export const Config = (function () {

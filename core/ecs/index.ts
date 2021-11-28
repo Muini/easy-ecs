@@ -63,7 +63,7 @@ export function recoverWorld(world: World, newWorld: World) {
 // =======================================
 // Components
 // =======================================
-type Component<N extends string, D> = Record<N, D>;
+export type Component<N extends string, D> = Record<N, D>;
 
 export function newComponent<N extends string, D>(name: N, data: D) {
   return { [name]: data } as Component<N, D>;
@@ -112,9 +112,9 @@ export type Entity<C extends Component<any, any>> = {
   readonly id: EntityId;
 } & C;
 
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
-) => void
+export type UnionToIntersection<U> = (
+  U extends any ? (k: U) => void : never
+) extends (k: infer I) => void
   ? I
   : never;
 export function newEntity<C extends Component<any, any>>(

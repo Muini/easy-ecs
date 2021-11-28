@@ -1,5 +1,5 @@
 import { recoverWorld } from "../ecs2";
-import { deepclone } from "../utils";
+import { deepclone } from "../ecs/utils";
 
 // 📑 Store addon
 export const Store = (function () {
