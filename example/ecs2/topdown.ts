@@ -6,6 +6,7 @@ import {
   queryEntities,
   newSystem,
   initWorld,
+  updateWorld,
 } from "../../core/ecs";
 import {
   Loop,
@@ -124,7 +125,6 @@ const MovementControl = newSystem({
 // ====================================
 const world = newWorld([
   //Modules
-  Loop.system,
   Input.system,
   Renderer.system,
   //Systems
@@ -145,6 +145,10 @@ const character = newEntity(Character, world, {
 // ====================================
 
 console.log(world);
-
 // Init & Start loop
 initWorld(world);
+
+Loop.update = (time: number) => {
+  updateWorld(world, time);
+};
+Loop.start();

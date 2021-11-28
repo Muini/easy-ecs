@@ -1,22 +1,22 @@
-import { updateWorld, newSystem, World } from "../ecs";
-
 // 🔁 Loop addon
 export const Loop = (function () {
   let _raf = null;
   let _fps = null;
   let _prevTime = performance.now();
-  const _loop = (world: World) => {
+  let _update = (time: number) => {};
+  const _loop = () => {
     _raf = requestAnimationFrame((time) => {
-      if (_fps) {
+      if (_fps != null) {
         const now = performance.now();
         const elapsed = now - _prevTime;
-        if (elapsed > 1 / _fps) {
+        if (elapsed > (1 / _fps) * 1000) {
           _prevTime = now;
-          updateWorld(world, time);
+          _update(time);
         }
       } else {
-        updateWorld(world, time);
+        _update(time);
       }
+      _loop();
     });
   };
   const _stop = () => {
@@ -28,20 +28,17 @@ export const Loop = (function () {
     get isRunning() {
       return _raf !== null;
     },
-    set setFps(fps: number | null) {
+    set update(fn: (time: number) => void) {
+      _update = fn;
+    },
+    setFps(fps: number | null) {
       _fps = fps;
     },
     stop: () => {
       _stop();
     },
-    system: newSystem({
-      name: "loop",
-      init: (world: World) => {
-        _loop(world);
-      },
-      beforeUpdate: (world: World, dt: number) => {
-        _loop(world);
-      },
-    }),
+    start: () => {
+      _loop();
+    },
   };
 })();
