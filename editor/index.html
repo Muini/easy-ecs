@@ -1,0 +1,99 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>MATE editor</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #1f1f24;
+        font-family: "Arial";
+        font-size: 12px;
+        color: #5f5da6;
+      }
+      h1 {
+        font-size: 14px;
+        margin-top: 1em;
+        margin-bottom: 0.25em;
+        letter-spacing: 0.05em;
+        font-weight: normal;
+        color: #a4a2db;
+      }
+      p {
+        margin-bottom: 0.5em;
+        text-align: center;
+        line-height: 1.5em;
+      }
+      a {
+        color: #e0a041;
+      }
+      button {
+        background: #293a4f;
+        border: 2px solid #e0a041;
+        color: #e0a041;
+        padding: 0.25em 1em;
+        border-radius: 6px;
+        box-shadow: inset rgba(0, 0, 0, 0.4) 0.5px 0.5px 4px,
+          rgba(0, 0, 0, 0.4) 1px 0.5px 4px;
+      }
+      .green {
+        border: 2px solid #35b372;
+        color: #35b372;
+      }
+      .red {
+        border: 2px solid #d44962;
+        color: #d44962;
+      }
+      .white {
+        border: 2px solid #a4a2db;
+        color: #a4a2db;
+      }
+      textarea {
+        background: #293a4f;
+        border: 2px solid #5f5da6;
+        color: #a4a2db;
+      }
+      canvas {
+        background: #293a4f;
+        border: 2px solid #5f5da6;
+        display: block;
+        margin: 0 auto;
+        border-radius: 6px;
+      }
+      ::selection {
+        background: #5f5da6;
+        color: #a4a2db;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>MATE</h1>
+    <p>
+      Made with
+      <a href="https://github.com/Muini/easy-ecs" target="_blank">ANI</a>
+    </p>
+    <p>Open a project folder</p>
+    <canvas id="stage"></canvas>
+    <textarea
+      placeholder="Some text already there"
+      name=""
+      id=""
+      cols="30"
+      rows="10"
+    ></textarea>
+    <div>
+      <button class="red">Stop</button>
+      <button>Pause</button>
+      <button class="green">Play</button>
+      <button class="white">Cancel</button>
+    </div>
+    <script type="module" src="./src/index.ts"></script>
+  </body>
+</html>

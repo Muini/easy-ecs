@@ -8,11 +8,11 @@ export type WorldStaticData = {
 };
 export type World = {
   time: number;
-  systems: System[];
+  systems: System<any>[];
   entities: Entity<any>[];
   data: WorldStaticData;
 };
-export function newWorld(systems: System[] = []): World {
+export function newWorld(systems: System<any>[] = []): World {
   return {
     time: performance.now(),
     systems,
@@ -25,10 +25,10 @@ export function removeEntityFromWorld(entity: Entity<any>, world: World) {
     return Log("warn", "Cannot remove entity from world", entity);
   world.entities.splice(world.entities.indexOf(entity), 1);
 }
-export function addSystemToWorld(system: System, world: World) {
+export function addSystemToWorld(system: System<any>, world: World) {
   world.systems.push(system);
 }
-export function removeSystemFromWorld(system: System, world: World) {
+export function removeSystemFromWorld(system: System<any>, world: World) {
   world.systems.splice(world.systems.indexOf(system), 1);
 }
 export function initWorld(world: World) {
@@ -65,8 +65,8 @@ export function recoverWorld(world: World, newWorld: World) {
 // =======================================
 export type Component<N extends string, D> = Record<N, D>;
 
-export function newComponent<N extends string, D>(name: N, data: D) {
-  return { [name]: data } as Component<N, D>;
+export function newComponent<N extends string, D>(name: N, data: D = null) {
+  return { [name.toLowerCase()]: data } as Component<Lowercase<N>, D>;
 }
 export function entityHasComponent(
   entity: Entity<unknown>,
@@ -218,23 +218,23 @@ export function applyValuesToEntity<C extends Component<any, any>>(
 // =======================================
 export type SystemInit = (world: World) => void;
 export type SystemUpdate = (world: World, dt: number) => void;
-export type System = {
-  name: string;
+export type System<N extends string> = {
+  name: N;
   init: SystemInit;
   update: SystemUpdate;
   beforeUpdate: SystemUpdate;
   afterUpdate: SystemUpdate;
 };
-export type SystemProps = {
-  name: string;
+export type SystemProps<N extends string> = {
+  name: N;
   init?: SystemInit;
   update?: SystemUpdate;
   beforeUpdate?: SystemUpdate;
   afterUpdate?: SystemUpdate;
   world?: World;
 };
-export function newSystem(props: SystemProps): System {
-  const system: System = {
+export function newSystem<N extends string>(props: SystemProps<N>): System<N> {
+  const system: System<N> = {
     name: props.name,
     init: props.init,
     update: props.update,
