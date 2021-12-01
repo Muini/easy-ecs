@@ -11,7 +11,7 @@ import {
   addComponentToEntity,
   removeComponentFromEntity,
 } from "../../core/ecs";
-import { SaveSystem } from "../../core/modules";
+import { SaveSystem } from "../../core/modules/saveSystem";
 
 let start = performance.now();
 

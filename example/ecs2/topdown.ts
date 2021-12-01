@@ -8,13 +8,9 @@ import {
   initWorld,
   updateWorld,
 } from "../../core/ecs";
-import {
-  Loop,
-  Input,
-  CanvasRenderer as Renderer,
-  // SaveSystem,
-  // Config,
-} from "../../core/modules";
+import { Loop } from "../../core/modules/loop";
+import { CanvasRenderer as Renderer } from "../../core/modules/canvasRenderer";
+import { Input } from "../../core/modules/input";
 
 // ====================================
 // Config Setup

@@ -6,11 +6,17 @@ import { deepclone, nanoid, Log } from "./utils";
 export type WorldStaticData = {
   [key: string]: any;
 };
+export type WorldFlags = {
+  entityListDirty: boolean;
+  entityComponentsDirty: boolean;
+  systemsDirty: boolean;
+};
 export type World = {
   time: number;
   systems: System<any>[];
   entities: Entity<any>[];
   data: WorldStaticData;
+  flags: WorldFlags;
 };
 export function newWorld(systems: System<any>[] = []): World {
   return {
@@ -18,18 +24,30 @@ export function newWorld(systems: System<any>[] = []): World {
     systems,
     entities: [],
     data: {},
+    flags: {
+      entityListDirty: false,
+      entityComponentsDirty: false,
+      systemsDirty: false,
+    },
   };
+}
+export function addEntityToWorld(entity: Entity<any>, world: World) {
+  world.entities.push(entity);
+  world.flags.entityListDirty = true;
 }
 export function removeEntityFromWorld(entity: Entity<any>, world: World) {
   if (world.entities.indexOf(entity) === -1)
     return Log("warn", "Cannot remove entity from world", entity);
   world.entities.splice(world.entities.indexOf(entity), 1);
+  world.flags.entityListDirty = true;
 }
 export function addSystemToWorld(system: System<any>, world: World) {
   world.systems.push(system);
+  world.flags.systemsDirty = true;
 }
 export function removeSystemFromWorld(system: System<any>, world: World) {
   world.systems.splice(world.systems.indexOf(system), 1);
+  world.flags.systemsDirty = true;
 }
 export function initWorld(world: World) {
   world.time = performance.now();
@@ -53,11 +71,18 @@ export function updateWorld(world: World, time = 0) {
     const system = world.systems[s];
     if (system.afterUpdate) system.afterUpdate(world, deltaTime);
   }
+
+  world.flags.entityListDirty = false;
+  world.flags.entityComponentsDirty = false;
+  world.flags.systemsDirty = false;
 }
 export function recoverWorld(world: World, newWorld: World) {
   world.entities = newWorld.entities;
   world.time = performance.now();
   world.data = newWorld.data; //TODO: Overwrite only existing data
+  world.flags.entityListDirty = true;
+  world.flags.entityComponentsDirty = true;
+  world.flags.systemsDirty = true;
 }
 
 // =======================================
@@ -77,15 +102,17 @@ export function entityHasComponent(
 export function addComponentToEntity<
   C extends Component<any, any>,
   N extends Component<any, any>
->(entity: Entity<C>, component: N) {
+>(entity: Entity<C>, component: N, world: World) {
   const obj = Object.assign(entity, deepclone(component));
+  world.flags.entityComponentsDirty = true;
   return entity as Entity<typeof obj>;
 }
 export function removeComponentFromEntity<
   C extends Component<any, any>,
   R extends Component<any, any>
->(entity: Entity<C>, component: R) {
+>(entity: Entity<C>, component: R, world: World) {
   if (!entityHasComponent(entity, component)) return;
+  world.flags.entityComponentsDirty = true;
   for (const cname in component) delete entity[cname];
 }
 
@@ -119,8 +146,8 @@ export type UnionToIntersection<U> = (
   : never;
 export function newEntity<C extends Component<any, any>>(
   prefab: Prefab<C>,
-  world: World,
-  defaultValues?: Partial<C>
+  world?: World,
+  defaultValues?: Partial<Omit<Entity<C>, "id">>
 ) {
   let components = {} as UnionToIntersection<C>;
   for (const key in prefab.components) {
@@ -132,7 +159,7 @@ export function newEntity<C extends Component<any, any>>(
     newEntity,
     (defaultValues as any) ?? prefab.defaultValues
   );
-  world.entities.push(newEntity);
+  if (world) addEntityToWorld(newEntity, world);
   return newEntity;
 }
 export type Query<
@@ -201,6 +228,7 @@ export function applyValuesToEntity<C extends Component<any, any>>(
   values: Partial<C>
 ) {
   for (const compName in values) {
+    if (compName === "id" || compName === "name") return;
     if (entity[compName]) {
       Object.assign(entity, { [compName]: deepclone(values[compName]) });
     } else {

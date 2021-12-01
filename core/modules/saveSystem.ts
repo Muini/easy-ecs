@@ -8,11 +8,18 @@ export enum SaveLocation {
 export const SaveSystem = (function () {
   return {
     name: "SaveSystem",
-    saveWorld: (saveName: string, world: World, location: SaveLocation) => {
+    saveWorld: (
+      saveName: string,
+      world: World,
+      location: SaveLocation = SaveLocation.LOCAL
+    ) => {
       const saveFile = {
         name: saveName,
         timestamp: Date.now(),
-        world: world,
+        world: {
+          entities: world.entities,
+          data: world.data,
+        },
       };
       switch (location) {
         case SaveLocation.LOCAL:
@@ -23,8 +30,6 @@ export const SaveSystem = (function () {
           break;
 
         case SaveLocation.FILE:
-          const fs = new FileSystem();
-          fs.root.filesystem.
           break;
 
         default:
@@ -32,6 +37,7 @@ export const SaveSystem = (function () {
       }
       return saveFile;
     },
+    restoreWorldFromFile: (path: string, world: World) => {},
     restoreWorld: (saveName: string, world: World) => {
       const savedFile = localStorage.getItem(`worldsave-${saveName}`);
       const savedData = JSON.parse(savedFile);
