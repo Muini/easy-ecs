@@ -10,6 +10,7 @@ export type WorldFlags = {
   entityListDirty: boolean;
   entityComponentsDirty: boolean;
   systemsDirty: boolean;
+  updatedSystemsCount: number;
 };
 export type World = {
   time: number;
@@ -28,6 +29,7 @@ export function newWorld(systems: System<any>[] = []): World {
       entityListDirty: false,
       entityComponentsDirty: false,
       systemsDirty: false,
+      updatedSystemsCount: 0,
     },
   };
 }
@@ -57,6 +59,8 @@ export function initWorld(world: World) {
   }
 }
 export function updateWorld(world: World, time = 0) {
+  world.flags.updatedSystemsCount = world.systems.length;
+
   const deltaTime = time - world.time;
   world.time = time;
   for (let s = 0; s < world.systems.length; s++) {
@@ -70,6 +74,7 @@ export function updateWorld(world: World, time = 0) {
   for (let s = 0; s < world.systems.length; s++) {
     const system = world.systems[s];
     if (system.afterUpdate) system.afterUpdate(world, deltaTime);
+    world.flags.updatedSystemsCount--;
   }
 
   world.flags.entityListDirty = false;
@@ -90,8 +95,8 @@ export function recoverWorld(world: World, newWorld: World) {
 // =======================================
 export type Component<N extends string, D> = Record<N, D>;
 
-export function newComponent<N extends string, D>(name: N, data: D = null) {
-  return { [name.toLowerCase()]: data } as Component<Lowercase<N>, D>;
+export function newComponent<N extends string, D>(nameid: N, data: D = null) {
+  return { [nameid.toLowerCase()]: data } as Component<Lowercase<N>, D>;
 }
 export function entityHasComponent(
   entity: Entity<unknown>,
@@ -120,19 +125,6 @@ export function removeComponentFromEntity<
 // Entities
 // =======================================
 
-export type Prefab<C extends Component<any, any>> = {
-  readonly name: string;
-  readonly components: C[];
-  readonly defaultValues?: Partial<C>;
-};
-export function newPrefab<C extends Component<any, any>>(
-  name: string,
-  components: C[],
-  defaultValues?: Partial<C>
-): Prefab<C> {
-  return { name, components, defaultValues };
-}
-
 export type EntityId = string;
 export type Entity<C extends Component<any, any>> = {
   readonly name: string;
@@ -145,23 +137,35 @@ export type UnionToIntersection<U> = (
   ? I
   : never;
 export function newEntity<C extends Component<any, any>>(
-  prefab: Prefab<C>,
-  world?: World,
-  defaultValues?: Partial<Omit<Entity<C>, "id">>
+  name: string,
+  componentList: C[],
+  defaultValues?: Partial<C>,
+  world?: World
 ) {
   let components = {} as UnionToIntersection<C>;
-  for (const key in prefab.components) {
-    Object.assign(components, deepclone(prefab.components[key]));
+  for (const key in componentList) {
+    Object.assign(components, deepclone(componentList[key]));
   }
-  const obj = Object.assign({ name: prefab.name, id: nanoid() }, components);
+  const obj = Object.assign({ name: name, id: nanoid() }, components);
   const newEntity = obj as Entity<typeof obj>;
-  applyValuesToEntity(
-    newEntity,
-    (defaultValues as any) ?? prefab.defaultValues
-  );
+  if (defaultValues)
+    applyValuesToEntity(newEntity, defaultValues as Partial<typeof components>);
   if (world) addEntityToWorld(newEntity, world);
   return newEntity;
 }
+export function cloneEntity<C extends Component<any, any>>(
+  entity: Entity<C>,
+  defaultValues?: Partial<Omit<Entity<C>, "id">>,
+  world?: World
+) {
+  const newEntity = deepclone(entity);
+  Object.assign(newEntity, { id: nanoid() });
+  if (defaultValues)
+    applyValuesToEntity(newEntity, defaultValues as Partial<C>);
+  if (world) addEntityToWorld(newEntity, world);
+  return newEntity;
+}
+
 export type Query<
   H extends Component<any, any>[],
   N extends Component<any, any>[]
@@ -228,7 +232,7 @@ export function applyValuesToEntity<C extends Component<any, any>>(
   values: Partial<C>
 ) {
   for (const compName in values) {
-    if (compName === "id" || compName === "name") return;
+    if (compName === "id") return;
     if (entity[compName]) {
       Object.assign(entity, { [compName]: deepclone(values[compName]) });
     } else {

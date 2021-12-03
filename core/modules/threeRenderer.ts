@@ -2,11 +2,22 @@ import {
   Entity,
   EntityId,
   newComponent,
+  newEntity,
+  cloneEntity,
   newSystem,
   queryEntities,
   World,
 } from "../ecs";
-import { Object3D, PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import {
+  Object3D,
+  PerspectiveCamera,
+  Scene,
+  WebGLRenderer,
+  sRGBEncoding,
+  ACESFilmicToneMapping,
+  Vector3,
+  Euler,
+} from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 // ========================
@@ -14,72 +25,106 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 // ========================
 
 // Store all objects into a map that is built on load
-export const RendererObjects = new Map<EntityId, Object3D>();
+export const RendererObjects = new Map<string, Object3D>();
 // export const RendererMaterials = new Map<EntityId, MeshBasicMaterial>();
 
-export const Renderer = new WebGLRenderer();
+export const Renderer = new WebGLRenderer({
+  antialias: false,
+  powerPreference: "high-performance",
+  alpha: false,
+});
+Renderer.outputEncoding = sRGBEncoding;
+Renderer.toneMapping = ACESFilmicToneMapping;
+Renderer.physicallyCorrectLights = true;
+Renderer.gammaFactor = 2.2;
 
 export const scene = new Scene();
-console.log(scene, GLTFLoader);
-
-const loader = new GLTFLoader();
-export function importGLTF(path: string) {
-  loader.load(
-    path,
-    (data) => {
-      console.log("GLTF Loaded !", data);
-    },
-    () => {
-      console.log("progress");
-    }
-  );
-}
 
 // ========================
 // Components
 // ========================
 
-export const CameraComponent = newComponent("camera", {
-  focalLength: 75,
-  near: 0.1,
-  far: 1000,
+export const TransformComponent = newComponent("transform", {
+  position: new Vector3(),
+  rotation: new Euler(),
+  scale: new Vector3(),
 });
-function updateCameraProps(entity: Entity<typeof CameraComponent>) {
-  const { focalLength, near, far } = entity.camera;
-  let camera = RendererObjects.get(entity.id) as PerspectiveCamera;
-  if (!camera) {
-    const size = Renderer.getSize();
-    camera = new PerspectiveCamera(
-      focalLength,
-      size.width / size.height,
-      near,
-      far
-    );
-    RendererObjects.set(entity.id, camera);
-  }
-  camera.setFocalLength(focalLength);
-  camera.near = near;
-  camera.far = far;
-}
 
-export const Material = newComponent("material", {});
+export const CameraComponent = newComponent("camera", "");
+
+export const Material = newComponent("material", "");
+
+export const Mesh = newComponent("material", "");
 
 // ========================
 // Systems
 // ========================
 
-function updateAllObjects(world: World) {
-  //Cameras
-  const cameras = queryEntities(world, { has: [CameraComponent] });
-  cameras.forEach((camera) => updateCameraProps(camera));
+// ========================
+// Utils
+// ========================
+
+const loader = new GLTFLoader();
+export function importGLTF(path: string) {
+  console.log("importGLTF", path);
+  loader.load(
+    path,
+    (gltf) => {
+      console.log("GLTF Loaded !", gltf);
+      processGLTF(gltf);
+    },
+    (xhr) => {
+      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+    },
+    (error) => {
+      throw new Error("GLTF Loader error");
+    }
+  );
 }
 
-export const UpdateRendererObjects = newSystem({
-  name: "update-renderer-objects",
-  init: (world) => {
-    updateAllObjects(world);
-  },
-  beforeUpdate: (world, dt) => {
-    updateAllObjects(world);
-  },
-});
+export function processGLTF(gltf): Entity<any>[] {
+  const entities: Entity<any> = [];
+
+  const parseObject = (obj: Object3D) => {
+    let newEnt;
+    switch (obj.type) {
+      case "Object3D":
+      case "Group":
+        console.log("create obj", obj);
+        newEnt = newEntity(obj.name, [TransformComponent], {
+          transform: {
+            position: obj.position,
+            rotation: obj.rotation,
+            scale: obj.scale,
+          },
+        });
+        break;
+      case "Mesh":
+        break;
+
+      case "PerspectiveCamera":
+        newEnt = newEntity(obj.name, [TransformComponent, CameraComponent], {
+          camera: obj.uuid,
+        });
+        break;
+
+      default:
+        break;
+    }
+    //Found a valid obj
+    if (newEnt) {
+      RendererObjects.set(obj.uuid, obj);
+      entities.push(newEnt);
+    }
+    //Check for children
+    if (obj.children && obj.children.length) {
+      obj.children.forEach((child) => parseObject(child));
+    }
+  };
+
+  parseObject(gltf.scene);
+
+  console.log(entities, RendererObjects);
+
+  return entities;
+}

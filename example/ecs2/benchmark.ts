@@ -1,7 +1,6 @@
 import {
   newWorld,
   newComponent,
-  newPrefab,
   newEntity,
   updateWorld,
   queryEntities,
@@ -10,6 +9,7 @@ import {
   initWorld,
   addComponentToEntity,
   removeComponentFromEntity,
+  cloneEntity,
 } from "../../core/ecs";
 import { SaveSystem } from "../../core/modules/saveSystem";
 
@@ -27,11 +27,11 @@ const Hero = newComponent("hero", true);
 // ====================================
 // Entities
 // ====================================
-const hero = newPrefab("Hero", [Position, Health, Hero, Sword], {
+const hero = newEntity("Hero", [Position, Health, Hero, Sword], {
   position: { x: 0, y: 0 },
   health: { hp: 1000, maxHp: 1000 },
 });
-const ennemy = newPrefab("Ennemy", [Position, Health, Ennemy, Axe], {
+const ennemy = newEntity("Ennemy", [Position, Health, Ennemy, Axe], {
   health: {
     maxHp: 4,
     hp: 4,
@@ -90,16 +90,20 @@ start = performance.now();
 const world = newWorld([Die, HeroAttack, EnnemyAttack]);
 // Heros
 for (let i = 0; i < 10000; i++) {
-  newEntity(hero, world);
+  cloneEntity(hero, {}, world);
 }
 // Ennemies
 for (let i = 0; i < 10000; i++) {
-  newEntity(ennemy, world, {
-    position: {
-      x: Math.ceil(Math.random() * 1000),
-      y: Math.ceil(Math.random() * 1000),
+  cloneEntity(
+    ennemy,
+    {
+      position: {
+        x: Math.ceil(Math.random() * 1000),
+        y: Math.ceil(Math.random() * 1000),
+      },
     },
-  });
+    world
+  );
 }
 // console.log(world.entities[0].maxHp);
 const worldSetupTime = performance.now() - start;
@@ -154,10 +158,10 @@ const Axe = newComponent("axe", { damage: 0 });
 const Health = newComponent("health", 100);
 const PowerUp = newComponent("power", true);
 
-const Hero = newPrefab("Hero", [Position, Health], {
+const Hero = newEntity("Hero", [Position, Health], {
   position: { x: 5, y: 5 },
 });
-const Ennemy = newPrefab("Ennemy", [Position, Axe, Health]);
+const Ennemy = newEntity("Ennemy", [Position, Axe, Health]);
 
 const System = newSystem({
   name: "test",
@@ -169,14 +173,14 @@ const System = newSystem({
 });
 
 const world = newWorld([System]);
-const hero = newEntity(Hero, world);
-const ennemy = newEntity(Ennemy, world, { position: { x: -1, y: 3 } });
+const hero = cloneEntity(Hero, {}, world);
+const ennemy = cloneEntity(Ennemy, { position: { x: -1, y: 3 } }, world);
 
-addComponentToEntity(hero, PowerUp);
+addComponentToEntity(hero, PowerUp, world);
 
 updateWorld(world, performance.now());
 
-removeComponentFromEntity(ennemy, Axe);
+removeComponentFromEntity(ennemy, Axe, world);
 
 console.log(world);
 */

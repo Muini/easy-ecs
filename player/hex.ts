@@ -1,20 +1,20 @@
 import { initWorld, newEntity, newWorld, updateWorld } from "../core/ecs";
 
 import { Loop } from "../core/modules/loop";
-import { SaveSystem } from "../core/modules/saveSystem";
-import { initSceneModule, prefabScene } from "../core/modules/scene";
+// import { SaveSystem } from "../core/modules/saveSystem";
+// import { initSceneModule, prefabScene } from "../core/modules/scene";
 import { Renderer, importGLTF } from "../core/modules/threeRenderer";
 
 const world = newWorld();
 
-initSceneModule(world);
+// initSceneModule(world);
 
-const hexScene = newEntity(prefabScene, world, {
+/*const hexScene = newEntity(prefabScene, world, {
   name: "scene-hex",
   scene: { isActive: true, entities: [] },
-});
+});*/
 
-importGLTF("./assets/hex.glb");
+importGLTF("./hex.glb");
 
 // Init & Start loop
 initWorld(world);
