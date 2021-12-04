@@ -11,6 +11,8 @@ export type WorldFlags = {
   entityComponentsDirty: boolean;
   systemsDirty: boolean;
   updatedSystemsCount: number;
+  lastAddedEntities: Entity<any>[];
+  lastRemovedEntities: Entity<any>[];
 };
 export type World = {
   time: number;
@@ -30,17 +32,21 @@ export function newWorld(systems: System<any>[] = []): World {
       entityComponentsDirty: false,
       systemsDirty: false,
       updatedSystemsCount: 0,
+      lastAddedEntities: [],
+      lastRemovedEntities: [],
     },
   };
 }
 export function addEntityToWorld(entity: Entity<any>, world: World) {
   world.entities.push(entity);
+  world.flags.lastAddedEntities.push(entity);
   world.flags.entityListDirty = true;
 }
 export function removeEntityFromWorld(entity: Entity<any>, world: World) {
   if (world.entities.indexOf(entity) === -1)
     return Log("warn", "Cannot remove entity from world", entity);
   world.entities.splice(world.entities.indexOf(entity), 1);
+  world.flags.lastRemovedEntities.push(entity);
   world.flags.entityListDirty = true;
 }
 export function addSystemToWorld(system: System<any>, world: World) {
@@ -80,6 +86,8 @@ export function updateWorld(world: World, time = 0) {
   world.flags.entityListDirty = false;
   world.flags.entityComponentsDirty = false;
   world.flags.systemsDirty = false;
+  world.flags.lastAddedEntities = [];
+  world.flags.lastRemovedEntities = [];
 }
 export function recoverWorld(world: World, newWorld: World) {
   world.entities = newWorld.entities;
@@ -96,7 +104,7 @@ export function recoverWorld(world: World, newWorld: World) {
 export type Component<N extends string, D> = Record<N, D>;
 
 export function newComponent<N extends string, D>(nameid: N, data: D = null) {
-  return { [nameid.toLowerCase()]: data } as Component<Lowercase<N>, D>;
+  return { [nameid.toLowerCase()]: data ?? true } as Component<Lowercase<N>, D>;
 }
 export function entityHasComponent(
   entity: Entity<unknown>,
@@ -173,19 +181,27 @@ export type Query<
   has?: H;
   not?: N;
 };
+enum QueryType {
+  Has,
+  Not,
+  Both,
+  None,
+}
+// const cachedQueries = new Map<Query<any, any>, Entity<any>[]>();
 export function queryEntities<
   H extends Component<any, any>[],
   N extends Component<any, any>[]
 >(world: World, query?: Query<H, N>): Entity<UnionToIntersection<H[number]>>[] {
+  //Check cache
+  /*if (world.flags.entityComponentsDirty || world.flags.entityListDirty) {
+    cachedQueries.clear();
+  } else {
+    const cache = cachedQueries.get(query);
+    if (cache) return cache as Entity<UnionToIntersection<H[number]>>[];
+  }*/
+  //Check query type
   const has = !!(query && query.has && query.has.length);
   const not = !!(query && query.not && query.not.length);
-
-  enum QueryType {
-    Has,
-    Not,
-    Both,
-    None,
-  }
   const queryType: QueryType =
     has && not
       ? QueryType.Both
@@ -194,7 +210,7 @@ export function queryEntities<
       : not && !has
       ? QueryType.Not
       : QueryType.None;
-
+  //Do the query
   switch (queryType) {
     case QueryType.Both:
       return world.entities.filter(
@@ -233,7 +249,7 @@ export function applyValuesToEntity<C extends Component<any, any>>(
 ) {
   for (const compName in values) {
     if (compName === "id") return;
-    if (entity[compName]) {
+    if (entity[compName] !== undefined) {
       Object.assign(entity, { [compName]: deepclone(values[compName]) });
     } else {
       Log(

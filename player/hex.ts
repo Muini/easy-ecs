@@ -1,11 +1,29 @@
-import { initWorld, newEntity, newWorld, updateWorld } from "../core/ecs";
+import {
+  addEntityToWorld,
+  initWorld,
+  newWorld,
+  updateWorld,
+} from "../core/ecs";
 
 import { Loop } from "../core/modules/loop";
 // import { SaveSystem } from "../core/modules/saveSystem";
 // import { initSceneModule, prefabScene } from "../core/modules/scene";
-import { Renderer, importGLTF } from "../core/modules/threeRenderer";
+import {
+  newRenderer,
+  importGLTF,
+  newScene,
+  RendererObjectsSyncSystem,
+  setRendererSize,
+  getCamera,
+} from "../core/modules/threeRenderer";
 
-const world = newWorld();
+const world = newWorld([RendererObjectsSyncSystem]);
+
+const renderer = newRenderer();
+
+const scene = newScene();
+
+setRendererSize(renderer, world);
 
 // initSceneModule(world);
 
@@ -14,15 +32,29 @@ const world = newWorld();
   scene: { isActive: true, entities: [] },
 });*/
 
-importGLTF("./hex.glb");
+importGLTF("./hex.glb", (gltf, entities) => {
+  entities.forEach((entity) => {
+    addEntityToWorld(entity, world);
+  });
+  scene.add(gltf.scene);
+  onLoaded();
+});
 
-// Init & Start loop
-initWorld(world);
+const onLoaded = () => {
+  // Init & Start loop
+  initWorld(world);
 
-Loop.update = (time: number) => {
-  updateWorld(world, time);
+  Loop.update = (time: number) => {
+    updateWorld(world, time);
+    //Retrieve camera
+    const camera = getCamera(world);
+    if (camera) renderer.render(scene, camera);
+  };
+  Loop.start();
+
+  console.log("start loop", renderer, world);
 };
-Loop.start();
 
-console.log(Renderer);
-console.log(world);
+window.addEventListener("resize", () => {
+  setRendererSize(renderer, world);
+});

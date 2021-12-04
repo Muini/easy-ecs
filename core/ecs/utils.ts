@@ -17,6 +17,7 @@ export let nanoid = (t = 21): string => {
 };
 
 export function deepclone<T>(o: T): T {
+  if (typeof o !== "object") return o;
   let out, v, key;
   out = Array.isArray(o) ? [] : {};
   for (key in o) {

@@ -89,11 +89,11 @@ start = performance.now();
 // ====================================
 const world = newWorld([Die, HeroAttack, EnnemyAttack]);
 // Heros
-for (let i = 0; i < 10000; i++) {
+for (let i = 0; i < 50000; i++) {
   cloneEntity(hero, {}, world);
 }
 // Ennemies
-for (let i = 0; i < 10000; i++) {
+for (let i = 0; i < 50000; i++) {
   cloneEntity(
     ennemy,
     {
@@ -118,7 +118,7 @@ const worldStartTime = performance.now() - start;
 start = performance.now();
 
 // update 1000 times
-const UPDATES = 1000;
+const UPDATES = 100;
 for (let i = 0; i < UPDATES; i++) {
   updateWorld(world, performance.now());
 }
